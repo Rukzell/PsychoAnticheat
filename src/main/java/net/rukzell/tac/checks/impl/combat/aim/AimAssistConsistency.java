@@ -55,7 +55,7 @@ public class AimAssistConsistency extends Check {
             }
 
             if (deltaYawsDistinct.size() >= 10) {
-                int distinct = (int) deltaYawsDistinct.stream().distinct().count();
+                int distinct = MathUtil.distinct(deltaYawsDistinct);
                 if (distinct < 8) {
                     bufferYawDistinct.fail(1);
                 } else {
@@ -70,7 +70,7 @@ public class AimAssistConsistency extends Check {
             }
 
             if (deltaPitchesDistinct.size() >= 10) {
-                int distinct = (int) deltaPitchesDistinct.stream().distinct().count();
+                int distinct = MathUtil.distinct(deltaPitchesDistinct);
                 if (distinct < 8) {
                     bufferPitchDistinct.fail(1);
                 } else {

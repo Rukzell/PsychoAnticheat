@@ -26,14 +26,14 @@ public final class TornadoAC extends JavaPlugin {
     private CheckListener checkListener;
 
     private void registerChecks() {
-        checkService.registerCheck(new AimAssistAngleLocking(configService.loadAimAssistAngleLockingCfg()));
-        checkService.registerCheck(new AimAssistConsistency(configService.loadAimAssistConsistencyCfg()));
-        checkService.registerCheck(new AimAssistSpike(configService.loadAimAssistSpikeCfg()));
-        checkService.registerCheck(new BadPacketsA(configService.loadBadPacketsACfg()));
-        checkService.registerCheck(new KillAuraSnap(configService.loadKillAuraSnapCfg()));
-        checkService.registerCheck(new KillAuraInvalid(configService.loadKillAuraInvalidCfg()));
-        checkService.registerCheck(new SprintA(configService.loadSprintACfg()));
-        checkService.registerCheck(new InventoryA(configService.loadInventoryACfg()));
+        checkService.registerCheck(new AimAssistAngleLocking(configService.loadCheck("checks.aimassist.anglelocking", 10)));
+        checkService.registerCheck(new AimAssistConsistency(configService.loadCheck("checks.aimassist.consistency", 10)));
+        checkService.registerCheck(new AimAssistSpike(configService.loadCheck("checks.aimassist.spike", 10)));
+        checkService.registerCheck(new BadPacketsA(configService.loadCheck("checks.badpackets.a", 10)));
+        checkService.registerCheck(new KillAuraSnap(configService.loadCheck("checks.killaura.snap", 10)));
+        checkService.registerCheck(new KillAuraInvalid(configService.loadCheck("checks.killaura.invalid", 10)));
+        checkService.registerCheck(new SprintA(configService.loadCheck("checks.sprint.a", 10)));
+        checkService.registerCheck(new InventoryA(configService.loadCheck("checks.inventory.a", 10)));
     }
 
     private void create() {

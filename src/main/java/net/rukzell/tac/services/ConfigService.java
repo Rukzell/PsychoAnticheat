@@ -8,11 +8,6 @@ import org.bukkit.configuration.Configuration;
 public class ConfigService {
     private final TornadoAC plugin;
     private final Configuration configuration;
-    private final String aimAssistCfgPath = "checks.aim-assist";
-    private final String badPacketsCfgPath = "checks.bad-packets";
-    private final String killAuraCfgPath = "checks.kill-aura";
-    private final String sprintCfgPath = "checks.sprint";
-    private final String inventoryCfgPath = "checks.inventory";
 
     public ConfigService(TornadoAC plugin) {
         this.plugin = plugin;
@@ -41,64 +36,16 @@ public class ConfigService {
 
     public MessagesCfg getMessagesCfg() {
         return new MessagesCfg(
-                getString("messages.prefix", "&c[TAC]"),
-                getString("messages.no-permission", "&cНет прав")
+                getString("messages.prefix", "§c[TAC]"),
+                getString("messages.no-permission", "§cYou do not have permission to do this!")
         );
     }
 
-    public CheckCfg loadAimAssistAngleLockingCfg() {
+    public CheckCfg loadCheck(String path, int defVl) {
         return new CheckCfg(
-                getInt(aimAssistCfgPath + ".anglelocking.vl-threshold", 5),
-                getString(aimAssistCfgPath + ".anglelocking.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadAimAssistConsistencyCfg() {
-        return new CheckCfg(
-                getInt(aimAssistCfgPath + ".consistency.vl-threshold", 5),
-                getString(aimAssistCfgPath + ".consistency.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadAimAssistSpikeCfg() {
-        return new CheckCfg(
-                getInt(aimAssistCfgPath + ".spike.vl-threshold", 5),
-                getString(aimAssistCfgPath + ".spike.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadBadPacketsACfg() {
-        return new CheckCfg(
-                getInt(badPacketsCfgPath + ".a.vl-threshold", 5),
-                getString(badPacketsCfgPath + ".a.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadKillAuraInvalidCfg() {
-        return new CheckCfg(
-                getInt(killAuraCfgPath + ".invalid.vl-threshold", 5),
-                getString(killAuraCfgPath + ".invalid.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadKillAuraSnapCfg() {
-        return new CheckCfg(
-                getInt(killAuraCfgPath + ".snap.vl-threshold", 5),
-                getString(killAuraCfgPath + ".snap.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadSprintACfg() {
-        return new CheckCfg(
-                getInt(sprintCfgPath + ".a.vl-threshold", 5),
-                getString(sprintCfgPath + ".a.punish-command", "kick {player} §4Unfair Advantage")
-        );
-    }
-
-    public CheckCfg loadInventoryACfg() {
-        return new CheckCfg(
-                getInt(inventoryCfgPath + ".a.vl-threshold", 5),
-                getString(inventoryCfgPath + ".a.punish-command", "kick {player} §4Unfair Advantage")
+                getInt(path + ".vl-threshold", defVl),
+                getString(path + ".punish-command", "kick {player} §4Unfair Advantage"),
+                getBoolean(path + ".enabled", true)
         );
     }
 

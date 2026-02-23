@@ -3,7 +3,7 @@ messages:
   no-permission: '&cYou do not have permission to do this!'
 
 checks:
-  aim-assist:
+  aimassist:
     anglelocking:
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
@@ -11,7 +11,12 @@ checks:
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
 
-  kill-aura:
+  badpackets:
+    a:
+      vl-threshold: 3
+      punish-command: 'kick {player} §4Unfair Advantage'
+
+  killaura:
     invalid:
       vl-threshold: 3
       punish-command: 'kick {player} §4Unfair Advantage'

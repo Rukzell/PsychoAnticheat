@@ -17,4 +17,8 @@ public class MathUtil {
 
         return Math.sqrt(sumSquaredDiffs / values.size());
     }
+
+    public static int distinct(List<Float> values) {
+        return values.stream().distinct().count();
+    }
 }
