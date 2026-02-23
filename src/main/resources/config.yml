@@ -1,0 +1,30 @@
+messages:
+  prefix: '§cTornado'
+  no-permission: '&cYou do not have permission to do this!'
+
+checks:
+  aim-assist:
+    anglelocking:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
+    consistency:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
+
+  kill-aura:
+    invalid:
+      vl-threshold: 3
+      punish-command: 'kick {player} §4Unfair Advantage'
+    snap:
+      vl-threshold: 10
+      punish-command: 'kick {player} §4Unfair Advantage'
+
+  sprint:
+    a:
+      vl-threshold: 3
+      punish-command: 'kick {player} §4Unfair Advantage'
+
+  inventory:
+    a:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
