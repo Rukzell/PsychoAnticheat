@@ -14,8 +14,8 @@ public class AimAssistSpike extends Check {
     private final List<Float> deltaYaws = new ArrayList<>();
     private final List<Float> deltaPitches = new ArrayList<>();
 
-    public AimAssistSpike(CheckCfg cfg) {
-        super(cfg);
+    public AimAssistSpike(String cfgPath, CheckCfg cfg) {
+        super(cfgPath, cfg);
     }
 
     @Override

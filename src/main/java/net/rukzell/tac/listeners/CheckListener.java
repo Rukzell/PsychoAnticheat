@@ -3,6 +3,7 @@ package net.rukzell.tac.listeners;
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
 import net.rukzell.tac.TornadoAC;
@@ -40,6 +41,21 @@ public class CheckListener implements PacketListener {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 tornadoPlayer.registerHit();
+            }
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
+            WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
+            switch (wrapper.getAction()) {
+                case START_SPRINTING -> {
+                    tornadoPlayer.registerStartSprint();
+                    tornadoPlayer.updateSprintPacketTime();
+                }
+                case STOP_SPRINTING -> {
+                    tornadoPlayer.registerStopSprint();
+                    tornadoPlayer.updateSprintPacketTime();
+                }
+                default -> { }
             }
         }
     }

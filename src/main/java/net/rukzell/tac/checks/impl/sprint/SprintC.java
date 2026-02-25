@@ -7,9 +7,8 @@ import net.rukzell.tac.cfg.CheckCfg;
 import net.rukzell.tac.checks.Check;
 import net.rukzell.tac.player.TornadoPlayer;
 
-public class SprintA extends Check {
-
-    public SprintA(String cfgPath, CheckCfg cfg) {
+public class SprintC extends Check {
+    public SprintC(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
     }
 
@@ -21,13 +20,10 @@ public class SprintA extends Check {
 
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
-
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
-                if (player.isStartSprint()) flag(player);
-            }
-
-            if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
-                if (player.isStopSprint()) flag(player);
+                if (player.getBukkitPlayer().isHandRaised()) {
+                    flag(player);
+                }
             }
         }
     }

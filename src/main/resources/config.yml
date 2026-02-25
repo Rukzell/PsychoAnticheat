@@ -10,10 +10,16 @@ checks:
     consistency:
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
+    distribution:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
+    spike:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
 
   badpackets:
     a:
-      vl-threshold: 3
+      vl-threshold: 1
       punish-command: 'kick {player} §4Unfair Advantage'
 
   killaura:
@@ -23,11 +29,21 @@ checks:
     snap:
       vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
+    pattern:
+      vl-threshold: 10
+      punish-command: 'kick {player} §4Unfair Advantage'
 
   sprint:
     a:
-      vl-threshold: 3
+      vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
+    b:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
+    c:
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
+
 
   inventory:
     a:

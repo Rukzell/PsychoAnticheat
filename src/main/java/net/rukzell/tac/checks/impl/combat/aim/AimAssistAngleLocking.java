@@ -8,12 +8,9 @@ import net.rukzell.tac.player.TornadoPlayer;
 import net.rukzell.tac.utils.buffer.VlBuffer;
 
 public class AimAssistAngleLocking extends Check {
-    public AimAssistAngleLocking(CheckCfg cfg) {
-        super(cfg);
+    public AimAssistAngleLocking(String cfgPath, CheckCfg cfg) {
+        super(cfgPath, cfg);
     }
-
-    private final VlBuffer bufferYaw = new VlBuffer();
-    private final VlBuffer bufferPitch = new VlBuffer();
 
     @Override
     public void handle(TornadoPlayer player, PacketReceiveEvent event) {
@@ -22,6 +19,9 @@ public class AimAssistAngleLocking extends Check {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+            VlBuffer bufferYaw = player.getBuffer("AimAssistAngleLocking:yaw");
+            VlBuffer bufferPitch = player.getBuffer("AimAssistAngleLocking:pitch");
+
             if (Math.abs(player.getDeltaYaw()) > 1 && Math.abs(player.getLastDeltaYaw()) < 0.01) {
                 bufferYaw.fail(1);
             } else {

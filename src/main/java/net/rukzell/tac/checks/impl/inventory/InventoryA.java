@@ -7,8 +7,8 @@ import net.rukzell.tac.checks.Check;
 import net.rukzell.tac.player.TornadoPlayer;
 
 public class InventoryA extends Check {
-    public InventoryA(CheckCfg cfg) {
-        super(cfg);
+    public InventoryA(String cfgPath, CheckCfg cfg) {
+        super(cfgPath, cfg);
     }
 
     @Override

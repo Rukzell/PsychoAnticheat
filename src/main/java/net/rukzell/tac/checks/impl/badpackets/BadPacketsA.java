@@ -7,8 +7,8 @@ import net.rukzell.tac.checks.Check;
 import net.rukzell.tac.player.TornadoPlayer;
 
 public class BadPacketsA extends Check {
-    public BadPacketsA(CheckCfg cfg) {
-        super(cfg);
+    public BadPacketsA(String cfgPath, CheckCfg cfg) {
+        super(cfgPath, cfg);
     }
 
     @Override

@@ -7,31 +7,29 @@ import org.bukkit.configuration.Configuration;
 
 public class ConfigService {
     private final TornadoAC plugin;
-    private final Configuration configuration;
 
     public ConfigService(TornadoAC plugin) {
         this.plugin = plugin;
-        this.configuration = plugin.getConfig();
     }
 
     public String getString(String path, String def) {
-        return configuration.getString(path, def);
+        return plugin.getConfig().getString(path, def);
     }
 
     public boolean getBoolean(String path, boolean def) {
-        return configuration.getBoolean(path, def);
+        return plugin.getConfig().getBoolean(path, def);
     }
 
     public int getInt(String path, int def) {
-        return configuration.getInt(path, def);
+        return plugin.getConfig().getInt(path, def);
     }
 
     public double getDouble(String path, double def) {
-        return configuration.getDouble(path, def);
+        return plugin.getConfig().getDouble(path, def);
     }
 
     public long getLong(String path, long def) {
-        return configuration.getLong(path, def);
+        return plugin.getConfig().getLong(path, def);
     }
 
     public MessagesCfg getMessagesCfg() {

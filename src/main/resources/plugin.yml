@@ -7,6 +7,11 @@ load: STARTUP
 depend: [ packetevents ]
 authors: [ Rukzell ]
 description: Anticheat
+commands:
+  tac:
+    description: TornadoAnticheat main command
+    usage: /tac
+    permission: tac.use
 permissions:
   tac.admin:
     default: op

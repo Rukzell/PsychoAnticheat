@@ -14,42 +14,40 @@ import net.rukzell.tac.checks.impl.sprint.SprintA;
 import net.rukzell.tac.listeners.CheckListener;
 import net.rukzell.tac.listeners.ConnectionListener;
 import net.rukzell.tac.services.CheckService;
+import net.rukzell.tac.services.CommandService;
 import net.rukzell.tac.services.ConfigService;
 import net.rukzell.tac.utils.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
 
 public final class TornadoAC extends JavaPlugin {
     private static TornadoAC instance;
     private ConnectionListener connectionListener;
     private CheckService checkService;
     private ConfigService configService;
+    private CommandService commandService;
     private CheckListener checkListener;
-
-    private void registerChecks() {
-        checkService.registerCheck(new AimAssistAngleLocking(configService.loadCheck("checks.aimassist.anglelocking", 10)));
-        checkService.registerCheck(new AimAssistConsistency(configService.loadCheck("checks.aimassist.consistency", 10)));
-        checkService.registerCheck(new AimAssistSpike(configService.loadCheck("checks.aimassist.spike", 10)));
-        checkService.registerCheck(new BadPacketsA(configService.loadCheck("checks.badpackets.a", 10)));
-        checkService.registerCheck(new KillAuraSnap(configService.loadCheck("checks.killaura.snap", 10)));
-        checkService.registerCheck(new KillAuraInvalid(configService.loadCheck("checks.killaura.invalid", 10)));
-        checkService.registerCheck(new SprintA(configService.loadCheck("checks.sprint.a", 10)));
-        checkService.registerCheck(new InventoryA(configService.loadCheck("checks.inventory.a", 10)));
-    }
 
     private void create() {
         instance = this;
         connectionListener = new ConnectionListener();
         checkService = new CheckService();
         configService = new ConfigService(this);
+        commandService = new CommandService(this);
         checkListener = new CheckListener();
 
-        registerChecks();
+        checkService.initialize();
     }
 
     @Override
     public void onEnable() {
         create();
         saveDefaultConfig();
+
+        // reg. commands
+        Objects.requireNonNull(getCommand("tac")).setExecutor(commandService);
+        Objects.requireNonNull(getCommand("tac")).setTabCompleter(commandService);
 
         // reg. bukkit event listeners
         getServer().getPluginManager().registerEvents(connectionListener, this);

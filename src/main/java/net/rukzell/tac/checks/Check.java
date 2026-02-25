@@ -9,13 +9,15 @@ import org.bukkit.entity.Player;
 
 public abstract class Check {
     private final TornadoAC plugin;
-    private final CheckCfg cfg;
+    private CheckCfg cfg;
     private final String name;
+    private String cfgPath;
 
-    public Check(CheckCfg cfg) {
+    public Check(String cfgPath, CheckCfg cfg) {
         this.plugin = TornadoAC.get();
         this.name = getClass().getSimpleName();
         this.cfg = cfg;
+        this.cfgPath = cfgPath;
     }
 
     public abstract void handle(TornadoPlayer player, PacketReceiveEvent event);
@@ -24,11 +26,11 @@ public abstract class Check {
         int vl = player.getViolation(name) + 1;
         player.addViolation(name, 1);
 
-        if (vl > cfg.vlThreshold()) {
+        if (vl >= cfg.vlThreshold()) {
             Player bukkitPlayer = player.getBukkitPlayer();
             plugin.getConnectionListener().removePlayer(bukkitPlayer.getUniqueId());
             Bukkit.getScheduler().runTask(plugin, () -> {
-                bukkitPlayer.kickPlayer("§4Unfair Advantage");
+                bukkitPlayer.kickPlayer(cfg.punishCommand());
             });
         }
 
@@ -37,8 +39,22 @@ public abstract class Check {
                 online.sendMessage(plugin.getMessagesCfg().prefix() +
                         " §7" + player.getBukkitPlayer().getName() +
                         " §cfailed §7" + name +
-                        " §cVL: §7" + vl);
+                        " §cVL: §7" + vl +
+                        "/" + cfg.vlThreshold()
+                        );
             }
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public CheckCfg getCfg() {
+        return cfg;
+    }
+
+    public String getCfgPath() {
+        return cfgPath;
     }
 }

@@ -6,9 +6,12 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import net.rukzell.tac.cfg.CheckCfg;
 import net.rukzell.tac.checks.Check;
 import net.rukzell.tac.player.TornadoPlayer;
+import net.rukzell.tac.utils.math.MathUtil;
 
-public class KillAuraInvalid extends Check {
-    public KillAuraInvalid(String cfgPath, CheckCfg cfg) {
+import java.util.Deque;
+
+public class KillAuraPattern extends Check {
+    public KillAuraPattern(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
     }
 
@@ -17,7 +20,8 @@ public class KillAuraInvalid extends Check {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                if (player.getBukkitPlayer().isHandRaised()) {
+                Deque<Long> hitDelays = player.getHitDelays();
+                if (hitDelays.size() == 10 && MathUtil.stddev(hitDelays) <= 1.1) {
                     flag(player);
                 }
             }

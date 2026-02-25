@@ -6,23 +6,14 @@ import net.rukzell.tac.cfg.CheckCfg;
 import net.rukzell.tac.checks.Check;
 import net.rukzell.tac.player.TornadoPlayer;
 import net.rukzell.tac.utils.Logger;
+import net.rukzell.tac.utils.SampleBuffer;
 import net.rukzell.tac.utils.buffer.VlBuffer;
 import net.rukzell.tac.utils.math.MathUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AimAssistConsistency extends Check {
-    private final List<Float> deltaYawsStd = new ArrayList<>();
-    private final List<Float> deltaYawsDistinct = new ArrayList<>();
-    private final List<Float> deltaPitchesStd = new ArrayList<>();
-    private final List<Float> deltaPitchesDistinct = new ArrayList<>();
-    public AimAssistConsistency(CheckCfg cfg) {
-        super(cfg);
+    public AimAssistConsistency(String cfgPath, CheckCfg cfg) {
+        super(cfgPath, cfg);
     }
-
-    private final VlBuffer bufferYawDistinct = new VlBuffer();
-    private final VlBuffer bufferPitchDistinct = new VlBuffer();
 
     @Override
     public void handle(TornadoPlayer player, PacketReceiveEvent event) {
@@ -31,31 +22,39 @@ public class AimAssistConsistency extends Check {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-            deltaYawsStd.add(Math.abs(player.getDeltaYaw()));
-            deltaPitchesStd.add((player.getDeltaPitch()));
-            deltaYawsDistinct.add(Math.abs(player.getDeltaYaw()));
-            deltaPitchesDistinct.add(Math.abs(player.getDeltaPitch()));
+            VlBuffer bufferYawDistinct = player.getBuffer("AimAssistConsistency:yawDistinct");
+            VlBuffer bufferPitchDistinct = player.getBuffer("AimAssistConsistency:pitchDistinct");
 
-            if (deltaYawsStd.size() >= 5) {
-                if (MathUtil.stddev(deltaYawsStd) == 0) {
+            SampleBuffer yawBufferStd = player.getSampleBuffer(getName() + ":yawStd", 20);
+            SampleBuffer pitchBufferStd = player.getSampleBuffer(getName() + ":yawStd", 20);
+            SampleBuffer yawBufferDistinct = player.getSampleBuffer(getName() + ":yawDistinct", 10);
+            SampleBuffer pitchBufferDistinct = player.getSampleBuffer(getName() + ":pitchDistinct", 10);
+
+            yawBufferStd.add(Math.abs(player.getDeltaYaw()));
+            pitchBufferStd.add(Math.abs(player.getDeltaPitch()));
+            yawBufferDistinct.add(Math.abs(player.getDeltaYaw()));
+            pitchBufferDistinct.add(Math.abs(player.getDeltaPitch()));
+
+            if (yawBufferStd.isFull()) {
+                if (MathUtil.stddev(yawBufferStd.getValues()) == 0) {
                     flag(player);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(StdDevXAxis)");
                 }
 
-                deltaYawsStd.clear();
+                yawBufferStd.getValues().clear();
             }
 
-            if (deltaPitchesStd.size() >= 5) {
-                if (MathUtil.stddev(deltaPitchesStd) == 0) {
+            if (pitchBufferStd.isFull()) {
+                if (MathUtil.stddev(pitchBufferStd.getValues()) == 0) {
                     flag(player);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(StdDevYAxis)");
                 }
 
-                deltaPitchesStd.clear();
+                pitchBufferStd.getValues().clear();
             }
 
-            if (deltaYawsDistinct.size() >= 10) {
-                int distinct = MathUtil.distinct(deltaYawsDistinct);
+            if (yawBufferDistinct.isFull()) {
+                int distinct = MathUtil.distinct(yawBufferDistinct.getValues());
                 if (distinct < 8) {
                     bufferYawDistinct.fail(1);
                 } else {
@@ -64,13 +63,14 @@ public class AimAssistConsistency extends Check {
 
                 if (bufferYawDistinct.getVl() > 3) {
                     flag(player);
+                    bufferYawDistinct.setVl(0);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(DistinctXAxis)");
                 }
-                deltaYawsDistinct.clear();
+                yawBufferDistinct.getValues().clear();
             }
 
-            if (deltaPitchesDistinct.size() >= 10) {
-                int distinct = MathUtil.distinct(deltaPitchesDistinct);
+            if (pitchBufferDistinct.isFull()) {
+                int distinct = MathUtil.distinct(pitchBufferDistinct.getValues());
                 if (distinct < 8) {
                     bufferPitchDistinct.fail(1);
                 } else {
@@ -79,9 +79,10 @@ public class AimAssistConsistency extends Check {
 
                 if (bufferPitchDistinct.getVl() > 3) {
                     flag(player);
+                    bufferPitchDistinct.setVl(0);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(DistinctYAxis)");
                 }
-                deltaPitchesDistinct.clear();
+                pitchBufferDistinct.getValues().clear();
             }
         }
     }

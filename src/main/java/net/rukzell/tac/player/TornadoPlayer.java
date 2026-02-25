@@ -1,6 +1,8 @@
 package net.rukzell.tac.player;
 
 import lombok.Data;
+import net.rukzell.tac.utils.SampleBuffer;
+import net.rukzell.tac.utils.buffer.VlBuffer;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -9,6 +11,8 @@ import java.util.*;
 public class TornadoPlayer {
     private final Player bukkitPlayer;
     private final Map<String, Integer> violations = new HashMap<>();
+    private final Map<String, VlBuffer> buffers = new HashMap<>();
+    private final Map<String, SampleBuffer> sampleBuffers = new HashMap<>();
 
     // rotation
     private float yaw;
@@ -28,11 +32,18 @@ public class TornadoPlayer {
 
     // hits
     private final Deque<Long> hitTimestamps;
+    private final Deque<Long> hitDelays;
     private long lastHit;
+
+    // entity action
+    private boolean startSprint;
+    private boolean stopSprint;
+    private long lastSprintPacket = -1L;
 
     public TornadoPlayer(Player bukkitPlayer) {
         this.bukkitPlayer = bukkitPlayer;
         this.hitTimestamps = new ArrayDeque<>();
+        this.hitDelays = new ArrayDeque<>(10);
         this.lastHit = 0;
     }
 
@@ -53,6 +64,38 @@ public class TornadoPlayer {
         this.jerkPitch = accelPitch - lastAccelPitch;
     }
 
+    public void registerHit() {
+        long now = System.currentTimeMillis();
+
+        if (lastHit > 0) {
+            long delay = now - lastHit;
+
+            if (hitDelays.size() >= 10) {
+                hitDelays.removeFirst();
+            }
+            hitDelays.addLast(delay);
+        }
+
+        hitTimestamps.addLast(now);
+        lastHit = now;
+
+        purgeOldHits();
+    }
+
+    public void registerStartSprint() {
+        startSprint = true;
+        stopSprint = false;
+    }
+
+    public void registerStopSprint() {
+        stopSprint = true;
+        startSprint = false;
+    }
+
+    public boolean isSprinting() {
+        return startSprint && !stopSprint;
+    }
+
     private void purgeOldHits() {
         long now = System.currentTimeMillis();
         while (!hitTimestamps.isEmpty() && now - hitTimestamps.peekFirst() > 1000) {
@@ -60,10 +103,19 @@ public class TornadoPlayer {
         }
     }
 
-    public void registerHit() {
-        hitTimestamps.addLast(System.currentTimeMillis());
-        lastHit = System.currentTimeMillis();
-        purgeOldHits();
+    public SampleBuffer getSampleBuffer(String key, int size) {
+        return sampleBuffers.computeIfAbsent(key, k -> new SampleBuffer(size));
+    }
+
+    public void updateSprintPacketTime() {
+        lastSprintPacket = System.nanoTime();
+    }
+
+    public long getSprintDelay() {
+        if (lastSprintPacket == -1L) {
+            return Long.MAX_VALUE;
+        }
+        return System.nanoTime() - lastSprintPacket;
     }
 
     public int getCps() {
@@ -82,6 +134,10 @@ public class TornadoPlayer {
 
     public void addViolation(String checkName, int amount) {
         violations.put(checkName, getViolation(checkName) + amount);
+    }
+
+    public VlBuffer getBuffer(String checkName) {
+        return buffers.computeIfAbsent(checkName, k -> new VlBuffer());
     }
 
     public void resetViolation(String checkName) {
