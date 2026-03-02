@@ -2,6 +2,7 @@ package net.rukzell.tac;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.rukzell.tac.cfg.MessagesCfg;
 import net.rukzell.tac.checks.impl.badpackets.BadPacketsA;
 import net.rukzell.tac.checks.impl.combat.aim.AimAssistAngleLocking;
@@ -41,6 +42,12 @@ public final class TornadoAC extends JavaPlugin {
     }
 
     @Override
+    public void onLoad() {
+       PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+       PacketEvents.getAPI().load();
+    }
+
+    @Override
     public void onEnable() {
         create();
         saveDefaultConfig();
@@ -54,13 +61,14 @@ public final class TornadoAC extends JavaPlugin {
 
         // reg. packetevents listeners
         PacketEvents.getAPI().getEventManager().registerListener(checkListener, PacketListenerPriority.NORMAL);
-
+        PacketEvents.getAPI().init();
         Logger.log("TAC successfully loaded");
     }
 
     @Override
     public void onDisable() {
         Logger.log("TAC disabled");
+        PacketEvents.getAPI().terminate();
     }
 
     public MessagesCfg getMessagesCfg() {

@@ -4,7 +4,6 @@ main: net.rukzell.tac.TornadoAC
 api-version: '1.16'
 prefix: TAC
 load: STARTUP
-depend: [ packetevents ]
 authors: [ Rukzell ]
 description: Anticheat
 commands:
