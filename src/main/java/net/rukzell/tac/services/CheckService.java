@@ -2,14 +2,12 @@ package net.rukzell.tac.services;
 
 import net.rukzell.tac.TornadoAC;
 import net.rukzell.tac.checks.impl.badpackets.BadPacketsA;
-import net.rukzell.tac.checks.impl.combat.aim.AimAssistAngleLocking;
-import net.rukzell.tac.checks.impl.combat.aim.AimAssistConsistency;
-import net.rukzell.tac.checks.impl.combat.aim.AimAssistDistribution;
-import net.rukzell.tac.checks.impl.combat.aim.AimAssistSpike;
+import net.rukzell.tac.checks.impl.combat.aim.*;
 import net.rukzell.tac.checks.impl.combat.killaura.KillAuraInvalid;
 import net.rukzell.tac.checks.impl.combat.killaura.KillAuraPattern;
 import net.rukzell.tac.checks.impl.combat.killaura.KillAuraSnap;
 import net.rukzell.tac.checks.impl.inventory.InventoryA;
+import net.rukzell.tac.checks.impl.inventory.InventoryB;
 import net.rukzell.tac.checks.impl.sprint.SprintA;
 import net.rukzell.tac.checks.impl.sprint.SprintB;
 import net.rukzell.tac.checks.Check;
@@ -49,10 +47,13 @@ public class CheckService {
     private void registerChecks() {
         ConfigService cfg = plugin.getConfigService();
 
-        registerCheck(new AimAssistAngleLocking("checks.aimassist.anglelocking", cfg.loadCheck("checks.aimassist.anglelocking", 10)));
-        registerCheck(new AimAssistConsistency("checks.aimassist.consistency", cfg.loadCheck("checks.aimassist.consistency", 10)));
+        registerCheck(new AimAngleLocking("checks.aimassist.anglelocking", cfg.loadCheck("checks.aimassist.anglelocking", 10)));
+        registerCheck(new AimConsistency("checks.aimassist.consistency", cfg.loadCheck("checks.aimassist.consistency", 10)));
         registerCheck(new AimAssistSpike("checks.aimassist.spike", cfg.loadCheck("checks.aimassist.spike", 10)));
-        registerCheck(new AimAssistDistribution("checks.aimassist.distribution", cfg.loadCheck("checks.aimassist.distribution", 10)));
+        registerCheck(new AimDistribution("checks.aimassist.distribution", cfg.loadCheck("checks.aimassist.distribution", 10)));
+        registerCheck(new AimSynthetic("checks.aimassist.syntheticnoise", cfg.loadCheck("checks.aimassist.syntheticnoise", 10)));
+        registerCheck(new AimDynamics("checks.aimassist.dynamics", cfg.loadCheck("checks.aimassist.dynamics", 10)));
+        registerCheck(new AimFrequency("checks.aimassist.frequency", cfg.loadCheck("checks.aimassist.frequency", 10)));
         registerCheck(new BadPacketsA("checks.badpackets.a", cfg.loadCheck("checks.badpackets.a", 10)));
         registerCheck(new KillAuraSnap("checks.killaura.snap", cfg.loadCheck("checks.killaura.snap", 10)));
         registerCheck(new KillAuraInvalid("checks.killaura.invalid", cfg.loadCheck("checks.killaura.invalid", 10)));
@@ -61,6 +62,7 @@ public class CheckService {
         registerCheck(new SprintB("checks.sprint.b", cfg.loadCheck("checks.sprint.b", 10)));
         registerCheck(new SprintC("checks.sprint.c", cfg.loadCheck("checks.sprint.c", 10)));
         registerCheck(new InventoryA("checks.inventory.a", cfg.loadCheck("checks.inventory.a", 10)));
+        registerCheck(new InventoryB("checks.inventory.b", cfg.loadCheck("checks.inventory.b", 10)));
     }
 
     public void reload() {

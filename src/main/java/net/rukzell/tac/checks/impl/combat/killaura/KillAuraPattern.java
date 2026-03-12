@@ -23,6 +23,7 @@ public class KillAuraPattern extends Check {
                 Deque<Long> hitDelays = player.getHitDelays();
                 if (hitDelays.size() == 10 && MathUtil.stddev(hitDelays) <= 1.1) {
                     flag(player);
+                    setback(player);
                 }
             }
         }

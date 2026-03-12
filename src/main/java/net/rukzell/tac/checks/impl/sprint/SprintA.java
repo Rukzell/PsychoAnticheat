@@ -23,11 +23,17 @@ public class SprintA extends Check {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
 
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
-                if (player.isStartSprint()) flag(player);
+                if (player.isStartSprint()) {
+                    flag(player);
+                    setback(player);
+                }
             }
 
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
-                if (player.isStopSprint()) flag(player);
+                if (player.isStopSprint()) {
+                    flag(player);
+                    setback(player);
+                }
             }
         }
     }

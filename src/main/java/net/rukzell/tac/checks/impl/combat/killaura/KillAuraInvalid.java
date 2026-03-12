@@ -18,6 +18,7 @@ public class KillAuraInvalid extends Check {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 if (player.getBukkitPlayer().isHandRaised()) {
+                    event.setCancelled(true);
                     flag(player);
                 }
             }

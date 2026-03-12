@@ -28,6 +28,8 @@ public class CheckListener implements PacketListener {
 
         if (tornadoPlayer == null) return;
 
+        tornadoPlayer.updateSafeLocation();
+
         for (Check check : TornadoAC.get().getCheckService().getRegisteredChecks()) {
             check.handle(tornadoPlayer, event);
         }
@@ -57,6 +59,10 @@ public class CheckListener implements PacketListener {
                 }
                 default -> { }
             }
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+            tornadoPlayer.registerInventoryClick();
         }
     }
 }

@@ -7,8 +7,8 @@ import net.rukzell.tac.checks.Check;
 import net.rukzell.tac.player.TornadoPlayer;
 import net.rukzell.tac.utils.buffer.VlBuffer;
 
-public class AimAssistAngleLocking extends Check {
-    public AimAssistAngleLocking(String cfgPath, CheckCfg cfg) {
+public class AimAngleLocking extends Check {
+    public AimAngleLocking(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
     }
 
@@ -18,7 +18,7 @@ public class AimAssistAngleLocking extends Check {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
             VlBuffer bufferYaw = player.getBuffer("AimAssistAngleLocking:yaw");
             VlBuffer bufferPitch = player.getBuffer("AimAssistAngleLocking:pitch");
 

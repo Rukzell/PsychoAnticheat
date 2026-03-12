@@ -5,47 +5,70 @@ messages:
 checks:
   aimassist:
     anglelocking:
-      vl-threshold: 5
+      enabled: true
+      vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
     consistency:
-      vl-threshold: 5
+      enabled: true
+      vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
     distribution:
-      vl-threshold: 5
+      enabled: true
+      vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
     spike:
-      vl-threshold: 5
+      enabled: true
+      vl-threshold: 10
+      punish-command: 'kick {player} §4Unfair Advantage'
+    syntheticnoise:
+      enabled: true
+      vl-threshold: 10
+      punish-command: 'kick {player} §4Unfair Advantage'
+    frequency:
+      enabled: true
+      vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
 
   badpackets:
     a:
+      enabled: true
       vl-threshold: 1
       punish-command: 'kick {player} §4Unfair Advantage'
 
   killaura:
     invalid:
+      enabled: true
       vl-threshold: 3
       punish-command: 'kick {player} §4Unfair Advantage'
     snap:
+      enabled: true
       vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
     pattern:
+      enabled: true
       vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
 
   sprint:
     a:
+      enabled: true
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
     b:
+      enabled: true
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
     c:
+      enabled: true
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'
 
-
   inventory:
     a:
+      enabled: true
+      vl-threshold: 5
+      punish-command: 'kick {player} §4Unfair Advantage'
+    b:
+      enabled: true
       vl-threshold: 5
       punish-command: 'kick {player} §4Unfair Advantage'

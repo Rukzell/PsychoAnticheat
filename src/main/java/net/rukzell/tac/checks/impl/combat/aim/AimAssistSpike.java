@@ -23,12 +23,12 @@ public class AimAssistSpike extends Check {
         if (player.getTimeSinceLastHit() > 2000) {
             return;
         }
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
             deltaYaws.add(Math.abs(player.getDeltaYaw()));
             deltaPitches.add(Math.abs(player.getDeltaPitch()));
 
             if (deltaYaws.size() >= 3) {
-                if (deltaYaws.get(0) < 0.1 && deltaYaws.get(1) > 20 && deltaYaws.get(2) < 0.1) {
+                if (deltaYaws.get(0) < 0.2 && deltaYaws.get(1) > 20 && deltaYaws.get(2) < 0.2) {
                     flag(player);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistSpike(XAxis)");
                 }
@@ -36,7 +36,7 @@ public class AimAssistSpike extends Check {
             }
 
             if (deltaPitches.size() >= 3) {
-                if (deltaPitches.get(0) < 0.3 && deltaPitches.get(1) > 20 && deltaPitches.get(2) < 0.3) {
+                if (deltaPitches.get(0) < 0.2 && deltaPitches.get(1) > 20 && deltaPitches.get(2) < 0.2) {
                     flag(player);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistSpike(YAxis)");
                 }

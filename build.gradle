@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'com.tornadoac'
@@ -13,8 +14,7 @@ repositories {
     }
     maven {
         name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"
-    }
+        url = "https://oss.sonatype.org/content/groups/public/"}
     maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
     maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
 }
@@ -22,7 +22,8 @@ repositories {
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT"
     compileOnly("org.projectlombok:lombok:1.18.42")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.10.0")
+    compileOnly("com.github.retrooper:packetevents-spigot:2.11.0")
+    implementation 'com.github.wendykierp:JTransforms:3.2'
     annotationProcessor("org.projectlombok:lombok:1.18.42")
 }
 
@@ -42,6 +43,11 @@ tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
     }
+}
+
+shadowJar {
+    archiveClassifier.set("")
+    relocate 'org.jtransforms', 'com.tornadoac.libs.jtransforms'
 }
 
 processResources {

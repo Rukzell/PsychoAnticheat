@@ -23,6 +23,7 @@ public class SprintC extends Check {
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
                 if (player.getBukkitPlayer().isHandRaised()) {
                     flag(player);
+                    setback(player);
                 }
             }
         }

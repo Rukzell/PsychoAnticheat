@@ -5,7 +5,9 @@ import net.rukzell.tac.TornadoAC;
 import net.rukzell.tac.cfg.CheckCfg;
 import net.rukzell.tac.player.TornadoPlayer;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public abstract class Check {
     private final TornadoAC plugin;
@@ -23,6 +25,11 @@ public abstract class Check {
     public abstract void handle(TornadoPlayer player, PacketReceiveEvent event);
 
     public void flag(TornadoPlayer player) {
+        long now = System.currentTimeMillis();
+
+        if (now - player.getLastFlagTime() < 1000) return;
+        player.setLastFlagTime(now);
+
         int vl = player.getViolation(name) + 1;
         player.addViolation(name, 1);
 
@@ -30,7 +37,7 @@ public abstract class Check {
             Player bukkitPlayer = player.getBukkitPlayer();
             plugin.getConnectionListener().removePlayer(bukkitPlayer.getUniqueId());
             Bukkit.getScheduler().runTask(plugin, () -> {
-                bukkitPlayer.kickPlayer(cfg.punishCommand());
+                Bukkit.dispatchCommand(plugin.getServer().getConsoleSender(), cfg.punishCommand().replace("{player}", bukkitPlayer.getName()));
             });
         }
 
@@ -43,6 +50,24 @@ public abstract class Check {
                         "/" + cfg.vlThreshold()
                         );
             }
+        }
+    }
+
+    public void setback(TornadoPlayer player) {
+        Player bukkitPlayer = player.getBukkitPlayer();
+        Location safe = player.getLastSafeLocation();
+
+        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) return;
+
+        if (player.getLastSafeLocation() != null) {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                bukkitPlayer.teleport(safe);
+                bukkitPlayer.setVelocity(new Vector(0, 0, 0));
+
+                Location modified = safe.clone();
+
+                bukkitPlayer.teleport(modified);
+            });
         }
     }
 

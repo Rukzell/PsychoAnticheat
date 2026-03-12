@@ -23,6 +23,7 @@ public class SprintB extends Check {
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING || wrapper.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
                 if (player.getSprintDelay() < 20_000_000) {
                     flag(player);
+                    setback(player);
                 }
             }
         }

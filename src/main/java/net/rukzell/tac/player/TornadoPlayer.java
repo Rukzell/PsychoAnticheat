@@ -3,6 +3,7 @@ package net.rukzell.tac.player;
 import lombok.Data;
 import net.rukzell.tac.utils.SampleBuffer;
 import net.rukzell.tac.utils.buffer.VlBuffer;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -13,6 +14,7 @@ public class TornadoPlayer {
     private final Map<String, Integer> violations = new HashMap<>();
     private final Map<String, VlBuffer> buffers = new HashMap<>();
     private final Map<String, SampleBuffer> sampleBuffers = new HashMap<>();
+    private long lastFlagTime;
 
     // rotation
     private float yaw;
@@ -40,11 +42,19 @@ public class TornadoPlayer {
     private boolean stopSprint;
     private long lastSprintPacket = -1L;
 
+    // inventory
+    private long lastInventoryClick = -1L;
+    private long clickDelay = -1L;
+
+    // setback tracking
+    private Location lastSafeLocation;
+
     public TornadoPlayer(Player bukkitPlayer) {
         this.bukkitPlayer = bukkitPlayer;
         this.hitTimestamps = new ArrayDeque<>();
         this.hitDelays = new ArrayDeque<>(10);
         this.lastHit = 0;
+        this.lastSafeLocation = bukkitPlayer.getLocation();
     }
 
     public void registerRotation(float yaw, float pitch) {
@@ -80,6 +90,14 @@ public class TornadoPlayer {
         lastHit = now;
 
         purgeOldHits();
+    }
+
+    public void registerInventoryClick() {
+        long now = System.currentTimeMillis();
+
+        clickDelay = now - lastInventoryClick;
+
+        lastInventoryClick = now;
     }
 
     public void registerStartSprint() {
@@ -146,5 +164,15 @@ public class TornadoPlayer {
 
     public void resetAllViolations() {
         violations.clear();
+    }
+
+    public void updateSafeLocation() {
+        if (bukkitPlayer != null && bukkitPlayer.isOnline()) {
+            this.lastSafeLocation = bukkitPlayer.getLocation().clone();
+        }
+    }
+
+    public void setSafeLocation(Location location) {
+        this.lastSafeLocation = location != null ? location.clone() : null;
     }
 }

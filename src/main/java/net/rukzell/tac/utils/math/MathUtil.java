@@ -1,8 +1,9 @@
 package net.rukzell.tac.utils.math;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import org.jtransforms.fft.DoubleFFT_1D;
+import org.jtransforms.fft.FloatFFT_1D;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MathUtil {
@@ -77,6 +78,179 @@ public class MathUtil {
         }
 
         return false;
+    }
+
+    public static double shannonEntropy(Collection<? extends Number> values) {
+        int n = values.size();
+        if (n == 0) return 0.0;
+
+        Map<Double, Integer> frequency = new HashMap<>();
+
+        for (Number num : values) {
+            double v = num.doubleValue();
+            frequency.put(v, frequency.getOrDefault(v, 0) + 1);
+        }
+
+        double entropy = 0.0;
+
+        for (int count : frequency.values()) {
+            double p = (double) count / n;
+            entropy -= p * (Math.log(p) / Math.log(2));
+        }
+
+        return entropy;
+    }
+
+    public static double average(final Collection<? extends Number> values) {
+        int count = values.size();
+        if (count == 0) return 0.0;
+
+        double sum = 0.0;
+        for (Number number : values) {
+            sum += number.doubleValue();
+        }
+
+        return sum / count;
+    }
+
+    public static double autocorrelation(Collection<? extends Number> values, int lag) {
+        int n = values.size();
+        if (n <= lag || lag < 1) return 0.0;
+
+        double[] arr = new double[n];
+        int index = 0;
+        for (Number number : values) {
+            arr[index++] = number.doubleValue();
+        }
+
+        double mean = average(values);
+
+        double numerator = 0.0;
+        double denominator = 0.0;
+
+        for (int i = 0; i < n; i++) {
+            double diff = arr[i] - mean;
+            denominator += diff * diff;
+
+            if (i >= lag) {
+                numerator += diff * (arr[i - lag] - mean);
+            }
+        }
+
+        if (denominator == 0.0) return 0.0;
+
+        return numerator / denominator;
+    }
+
+    public static double highFreqRatio(Collection<? extends Number> deltas) {
+        int N = deltas.size();
+        if (N < 8) return 0.0;
+
+        double[] data = new double[N];
+        int i = 0;
+        for (Number n : deltas) {
+            data[i++] = n.doubleValue();
+        }
+
+        DoubleFFT_1D fft = new DoubleFFT_1D(N);
+        fft.realForward(data);
+
+        double totalEnergy = 0.0;
+        double highFreqEnergy = 0.0;
+
+        int halfN = N / 2;
+
+        for (int k = 0; k < halfN; k++) {
+            double re, im;
+
+            if (k == 0) {
+                re = data[0];
+                im = 0.0;
+            } else {
+                re = data[2 * k];
+                im = data[2 * k + 1];
+            }
+
+            double energy = re * re + im * im;
+            totalEnergy += energy;
+
+            if (k >= halfN / 2) {
+                highFreqEnergy += energy;
+            }
+        }
+
+        if (totalEnergy == 0.0) return 0.0;
+
+        return highFreqEnergy / totalEnergy;
+    }
+
+    public static double kurtosis(Collection<? extends Number> values) {
+        int n = values.size();
+        if (n < 4) return 0.0;
+
+        double mean = average(values);
+
+        double m2 = 0.0;
+        double m4 = 0.0;
+
+        for (Number number : values) {
+            double diff = number.doubleValue() - mean;
+            double diff2 = diff * diff;
+
+            m2 += diff2;
+            m4 += diff2 * diff2;
+        }
+
+        m2 /= n;
+        m4 /= n;
+
+        if (m2 == 0.0) return 0.0;
+
+        return (m4 / (m2 * m2)) - 3.0;
+    }
+
+    public static double spectralFlatness(Collection<? extends Number> deltas) {
+        int N = deltas.size();
+        if (N < 8) return 0.0;
+
+        double[] data = new double[N];
+        int i = 0;
+        for (Number n : deltas) data[i++] = n.doubleValue();
+
+        DoubleFFT_1D fft = new DoubleFFT_1D(N);
+        fft.realForward(data);
+
+        double[] magnitude = new double[N / 2];
+        int halfN = N / 2;
+
+        for (int k = 0; k < halfN; k++) {
+            double re, im;
+            if (k == 0) {
+                re = data[0];
+                im = 0.0;
+            } else {
+                re = data[2 * k];
+                im = data[2 * k + 1];
+            }
+            magnitude[k] = Math.sqrt(re * re + im * im);
+        }
+
+        double logSum = 0.0;
+        double arithSum = 0.0;
+        int count = 0;
+        for (double mag : magnitude) {
+            if (mag <= 0) continue;
+            logSum += Math.log(mag);
+            arithSum += mag;
+            count++;
+        }
+
+        if (count == 0 || arithSum == 0) return 0.0;
+
+        double geoMean = Math.exp(logSum / count);
+        double arithMean = arithSum / count;
+
+        return geoMean / arithMean;
     }
 
     private static double percentile(double[] arr, double percent) {

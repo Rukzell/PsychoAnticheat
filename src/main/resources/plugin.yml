@@ -1,4 +1,4 @@
-name: TornadoAC
+name: TornadoAnticheat
 version: '${version}'
 main: net.rukzell.tac.TornadoAC
 api-version: '1.16'
