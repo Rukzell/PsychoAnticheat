@@ -1,17 +1,15 @@
-name: TornadoAnticheat
+name: Psycho
 version: '${version}'
-main: net.rukzell.tac.TornadoAC
+main: com.psycho.Psycho
 api-version: '1.16'
-prefix: TAC
-load: STARTUP
-depend: [ packetevents ]
+prefix: Psycho
 authors: [ Rukzell ]
 description: Anticheat
 commands:
-  tac:
+  psycho:
     description: TornadoAnticheat main command
-    usage: /tac
-    permission: tac.use
+    usage: /psycho
+    permission: psycho.use
 permissions:
-  tac.admin:
+  psycho.admin:
     default: op

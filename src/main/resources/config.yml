@@ -1,5 +1,5 @@
 messages:
-  prefix: '§cTornado'
+  prefix: '§cPsycho'
   no-permission: '&cYou do not have permission to do this!'
 
 checks:
@@ -28,6 +28,11 @@ checks:
       enabled: true
       vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
+    ml:
+      enabled: true
+      vl-threshold: 10
+      punish-command: 'kick {player} §4Unfair Advantage'
+      decay: 1.5 # buffer decay
 
   badpackets:
     a:

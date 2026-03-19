@@ -1,0 +1,16 @@
+name: TornadoAnticheat
+version: '${version}'
+main: net.rukzell.tac.TornadoAC
+api-version: '1.16'
+prefix: TAC
+load: STARTUP
+authors: [ Rukzell ]
+description: Anticheat
+commands:
+  tac:
+    description: TornadoAnticheat main command
+    usage: /tac
+    permission: tac.use
+permissions:
+  tac.admin:
+    default: op
