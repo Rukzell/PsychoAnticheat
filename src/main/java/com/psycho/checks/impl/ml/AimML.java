@@ -24,7 +24,7 @@ public class AimML extends Check {
     private final Map<UUID, Deque<double[]>> playerSequences = new ConcurrentHashMap<>();
     private final Map<UUID, Double> playerVlBuffer = new ConcurrentHashMap<>();
     private final Map<UUID, Deque<Double>> playerProbHistory = new ConcurrentHashMap<>();
-    private final int seqLength = 30;
+    private final int seqLength = 50;
     private final int probHistorySize = 10;
     private FeatureNormalizer normalizer;
     private double decay;
@@ -97,8 +97,10 @@ public class AimML extends Check {
                     buffer.decay(decay);
                 }
 
-                if (buffer.getVl() > 3) {
-                    flag(player, String.format("avg=%.3f", avgProb * 100));
+//                player.getBukkitPlayer().sendMessage("prob=" + avgProb);
+
+                if (buffer.getVl() > 5) {
+                    flag(player, String.format("avg=%.2f", avgProb * 100));
                     buffer.setVl(0);
                 }
 

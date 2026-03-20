@@ -34,7 +34,8 @@ public class ConfigService {
     public MessagesCfg getMessagesCfg() {
         return new MessagesCfg(
                 getString("messages.prefix", "§c[Psycho]"),
-                getString("messages.no-permission", "§cYou do not have permission to do this!")
+                getString("messages.no-permission", "§cYou do not have permission to do this!"),
+                getString("messages.alert", "{prefix} §7{player} §cfailed §7{check} §c{vl}§7/§c{maxVl} ")
         );
     }
 
@@ -46,9 +47,5 @@ public class ConfigService {
                 getDouble(path + ".buffer-threshold", 0),
                 getBoolean(path + ".enabled", true)
         );
-    }
-
-    public void reload() {
-        plugin.reloadConfig();
     }
 }

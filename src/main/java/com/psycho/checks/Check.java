@@ -47,15 +47,18 @@ public abstract class Check {
             );
         }
 
+        String message = plugin.getMessagesCfg().formatAlert(
+                player.getBukkitPlayer().getName(),
+                name,
+                vlBar,
+                vl,
+                cfg.vlThreshold(),
+                info
+        );
+
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.hasPermission("psycho.admin")) {
-                online.sendMessage(plugin.getMessagesCfg().prefix() +
-                        " §7" + player.getBukkitPlayer().getName() +
-                        " §cfailed §7" + name +
-                        " §7" + vlBar +
-                        " §c" + vl + "§7/§c" + cfg.vlThreshold() +
-                        (info.isEmpty() ? "" : " §7(" + info + ")")
-                );
+                online.sendMessage(message);
             }
         }
     }
@@ -94,18 +97,6 @@ public abstract class Check {
         }
         bar.append("§7]");
         return bar.toString();
-    }
-
-    public void decayVl(PsychoPlayer player) {
-        long now = System.currentTimeMillis();
-        long lastFlag = player.getLastFlagTime();
-
-        if (now - lastFlag > 120000) {
-            int vl = player.getViolation(name);
-            if (vl > 0) {
-                player.addViolation(name, -1);
-            }
-        }
     }
 
     public String getName() {

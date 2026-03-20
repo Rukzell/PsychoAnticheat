@@ -1,6 +1,8 @@
 messages:
   prefix: '§cPsycho'
-  no-permission: '&cYou do not have permission to do this!'
+  no-permission: '§cYou do not have permission to do this!'
+  # {prefix} {player} {check} {vlBar} {vl} {maxVl} {info}
+  alert: '{prefix} §7{player} §cfailed §7{check} §7{vlBar} {info}'
 
 checks:
   aimassist:

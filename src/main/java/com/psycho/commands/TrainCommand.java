@@ -92,7 +92,7 @@ public class TrainCommand implements SubCommand {
                     }
                 }
 
-                int seqLength = 30;
+                int seqLength = 50;
                 int sequenceCount = dataRows.size() / seqLength;
                 if (sequenceCount == 0) {
                     sender.sendMessage("§cNot enough data for a single sequence.");

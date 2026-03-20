@@ -30,6 +30,10 @@ public class CheckListener implements PacketListener {
 
         psychoPlayer.updateSafeLocation();
 
+        if (psychoPlayer.getTimeSinceLastHit() > 120000) {
+            psychoPlayer.resetAllViolations();
+        }
+
         for (Check check : Psycho.get().getCheckService().getRegisteredChecks()) {
             check.handle(psychoPlayer, event);
         }
