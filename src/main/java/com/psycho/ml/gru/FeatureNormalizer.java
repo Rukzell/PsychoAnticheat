@@ -76,6 +76,13 @@ public class FeatureNormalizer {
         return out;
     }
 
+    public void transform(double[][] seq, double[][] out) {
+        checkFitted();
+        for (int t = 0; t < seq.length; t++)
+            for (int f = 0; f < features; f++)
+                out[t][f] = (seq[t][f] - mean[f]) / std[f];
+    }
+
     // ── Save / Load ──────────────────────────────────────────────────────────
 
     private static final int VERSION = 1;

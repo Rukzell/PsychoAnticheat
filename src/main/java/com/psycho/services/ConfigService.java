@@ -44,6 +44,7 @@ public class ConfigService {
                 getInt(path + ".vl-threshold", defVl),
                 getString(path + ".punish-command", "kick {player} §4Unfair Advantage"),
                 getDouble(path + ".decay", 0),
+                getDouble(path + ".prob-threshold", 0),
                 getDouble(path + ".buffer-threshold", 0),
                 getBoolean(path + ".enabled", true)
         );

@@ -34,7 +34,9 @@ checks:
       enabled: true
       vl-threshold: 10
       punish-command: 'kick {player} §4Unfair Advantage'
-      decay: 1.5 # buffer decay
+      prob-threshold: 0.8
+      buffer-threshold: 3
+      decay: 3 # buffer decay
 
   badpackets:
     a:

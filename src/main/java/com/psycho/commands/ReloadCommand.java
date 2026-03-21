@@ -33,7 +33,7 @@ public class ReloadCommand implements SubCommand {
         plugin.getCheckService().reload();
         for (Check check : checkService.getRegisteredChecks()) {
             CheckCfg newCfg = configService.loadCheck(check.getCfgPath(), 10);
-            check.getCfg().updateFromConfig(newCfg.vlThreshold(), newCfg.punishCommand(), newCfg.decay(), newCfg.bufferThreshold(), newCfg.enabled());
+            check.getCfg().updateFromConfig(newCfg.vlThreshold(), newCfg.punishCommand(), newCfg.decay(), newCfg.bufferThreshold(), newCfg.probThreshold(), newCfg.enabled());
         }
         sender.sendMessage("§aPsycho reloaded.");
     }

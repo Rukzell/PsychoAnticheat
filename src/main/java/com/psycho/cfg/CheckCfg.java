@@ -5,14 +5,16 @@ public class CheckCfg {
     private String punishCommand;
     private double decay;
     private double bufferThreshold;
+    private double probThreshold;
     private boolean enabled;
 
-    public CheckCfg(int vlThreshold, String punishCommand, double decay, double bufferThreshold, boolean enabled) {
+    public CheckCfg(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled) {
         this.vlThreshold = vlThreshold;
         this.punishCommand = punishCommand;
         this.enabled = enabled;
         this.decay = decay;
         this.bufferThreshold = bufferThreshold;
+        this.probThreshold = probThreshold;
     }
 
     public int vlThreshold() {
@@ -27,6 +29,10 @@ public class CheckCfg {
         return bufferThreshold;
     }
 
+    public double probThreshold() {
+        return probThreshold;
+    }
+
     public String punishCommand() {
         return punishCommand;
     }
@@ -35,7 +41,7 @@ public class CheckCfg {
         return enabled;
     }
 
-    public void updateFromConfig(int vlThreshold, String punishCommand, double decay, double bufferThreshold, boolean enabled) {
+    public void updateFromConfig(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled) {
         this.vlThreshold = vlThreshold;
         this.punishCommand = punishCommand;
         this.enabled = enabled;

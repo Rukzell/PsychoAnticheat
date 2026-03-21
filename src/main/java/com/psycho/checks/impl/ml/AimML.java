@@ -21,20 +21,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AimML extends Check {
     private GRU gru;
+    private FeatureNormalizer normalizer;
+
     private final Map<UUID, Deque<double[]>> playerSequences = new ConcurrentHashMap<>();
-    private final Map<UUID, Double> playerVlBuffer = new ConcurrentHashMap<>();
     private final Map<UUID, Deque<Double>> playerProbHistory = new ConcurrentHashMap<>();
+
+    private final Map<UUID, double[][]> rawCache = new ConcurrentHashMap<>();
+    private final Map<UUID, double[][]> normalizedCache = new ConcurrentHashMap<>();
+
     private final int seqLength = 50;
     private final int probHistorySize = 10;
-    private FeatureNormalizer normalizer;
-    private double decay;
+    private final double decay;
 
     public AimML(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
-        File dir = new File(Psycho.get().getDataFolder(), "ml");
+        File dir       = new File(Psycho.get().getDataFolder(), "ml");
         File modelFile = new File(dir, "model.bin");
         File normFile  = new File(dir, "normalizer.bin");
-        if (modelFile.exists()) {
+        if (modelFile.exists() && normFile.exists()) {
             try {
                 gru = GRU.load(modelFile);
                 normalizer = FeatureNormalizer.load(normFile);
@@ -47,71 +51,68 @@ public class AimML extends Check {
 
     @Override
     public void handle(PsychoPlayer player, PacketReceiveEvent event) {
-        if (gru == null || !getCfg().enabled()) return;
+        if (gru == null || normalizer == null || !getCfg().enabled()) return;
+
+        if (event.getPacketType() != PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION &&
+                event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION) return;
 
         UUID uuid = player.getBukkitPlayer().getUniqueId();
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION ||
-                event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+        if (player.getTimeSinceLastHit() > 2000) {
+            cleanupPlayer(uuid);
+            return;
+        }
 
-            if (player.getTimeSinceLastHit() > 2000) {
-                cleanupPlayer(uuid);
-                return;
-            }
+        Deque<double[]> recentData = playerSequences.computeIfAbsent(uuid, k -> new ArrayDeque<>());
+        Deque<Double> probHistory = playerProbHistory.computeIfAbsent(uuid, k -> new ArrayDeque<>());
 
-            Deque<double[]> recentData = playerSequences.computeIfAbsent(uuid, k -> new ArrayDeque<>());
-            Deque<Double> probHistory = playerProbHistory.computeIfAbsent(uuid, k -> new ArrayDeque<>());
-            double vlBuffer = playerVlBuffer.getOrDefault(uuid, 0.0);
-            VlBuffer buffer = player.getBuffer(getName());
+        recentData.add(new double[]{
+                player.getDeltaYaw(),
+                player.getDeltaPitch(),
+                player.getAccelYaw(),
+                player.getAccelPitch(),
+                player.getJerkYaw(),
+                player.getJerkPitch()
+        });
 
-            double dy = player.getDeltaYaw();
-            double dp = player.getDeltaPitch();
-            double ay = player.getAccelYaw();
-            double ap = player.getAccelPitch();
-            double jy = player.getJerkYaw();
-            double jp = player.getJerkPitch();
+        if (recentData.size() < seqLength) return;
+        if (recentData.size() > seqLength) recentData.removeFirst();
 
-            recentData.add(new double[]{dy, dp, ay, ap, jy, jp});
+        double[][] raw = rawCache.computeIfAbsent(uuid, k -> new double[seqLength][6]);
+        double[][] normalized = normalizedCache.computeIfAbsent(uuid, k -> new double[seqLength][6]);
 
-            if (recentData.size() > seqLength) {
-                recentData.removeFirst();
+        int i = 0;
+        for (double[] row : recentData) raw[i++] = row;
 
-                double[][] raw        = recentData.toArray(new double[seqLength][]);
-                double[][] normalized = normalizer.transform(raw);
-                double[]   result     = gru.forward(normalized);
-                double currentProb    = result[0];
+        normalizer.transform(raw, normalized);
 
-                probHistory.add(currentProb);
-                if (probHistory.size() > probHistorySize) {
-                    probHistory.removeFirst();
-                }
+        double currentProb = gru.forward(normalized)[0];
 
-                double avgProb = probHistory.stream()
-                        .mapToDouble(Double::doubleValue)
-                        .average()
-                        .orElse(currentProb);
+        probHistory.add(currentProb);
+        if (probHistory.size() > probHistorySize) probHistory.removeFirst();
 
-                if (avgProb >= 0.99 && MathUtil.min(probHistory) > 0.8) {
-                    buffer.fail(1);
-                } else {
-                    buffer.decay(decay);
-                }
+        double sum = 0;
+        for (double p : probHistory) sum += p;
+        double avgProb = sum / probHistory.size();
 
-//                player.getBukkitPlayer().sendMessage("prob=" + avgProb);
+        VlBuffer buffer = player.getBuffer(getName());
 
-                if (buffer.getVl() > 5) {
-                    flag(player, String.format("avg=%.2f", avgProb * 100));
-                    buffer.setVl(0);
-                }
+        if (avgProb >= 0.99 && MathUtil.min(probHistory) > 0.95) {
+            buffer.fail(1);
+        } else {
+            buffer.decay(decay);
+        }
 
-                playerVlBuffer.put(uuid, vlBuffer);
-            }
+        if (buffer.getVl() > 5) {
+            flag(player, String.format("avg=%.2f", avgProb * 100));
+            buffer.setVl(0);
         }
     }
 
     public void cleanupPlayer(UUID uuid) {
         playerSequences.remove(uuid);
-        playerVlBuffer.remove(uuid);
         playerProbHistory.remove(uuid);
+        rawCache.remove(uuid);
+        normalizedCache.remove(uuid);
     }
 }

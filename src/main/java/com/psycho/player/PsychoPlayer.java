@@ -54,6 +54,9 @@ public class PsychoPlayer {
     // setback tracking
     private Location lastSafeLocation;
 
+    // alerts
+    private boolean sendAlerts;
+
     public PsychoPlayer(Player bukkitPlayer) {
         this.bukkitPlayer = bukkitPlayer;
         this.hitTimestamps = new ArrayDeque<>();
@@ -77,6 +80,8 @@ public class PsychoPlayer {
         this.accelPitch = deltaPitch - lastDeltaPitch;
         this.jerkYaw = accelYaw - lastAccelYaw;
         this.jerkPitch = accelPitch - lastAccelPitch;
+
+        this.sendAlerts = true;
         
         DataCollector.collect(this);
     }
