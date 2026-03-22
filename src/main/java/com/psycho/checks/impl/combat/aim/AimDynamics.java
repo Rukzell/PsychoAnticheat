@@ -27,21 +27,20 @@ public class AimDynamics extends Check {
             yawBuffer.add(Math.abs(player.getJerkYaw()));
             pitchBuffer.add(Math.abs(player.getJerkPitch()));
 
-            if (!yawBuffer.isFull() || !pitchBuffer.isFull()) return;
+            if (yawBuffer.isFull() && pitchBuffer.isFull()) {
+                double stddevYaw = MathUtil.stddev(yawBuffer.getValues());
+                double stddevPitch = MathUtil.stddev(pitchBuffer.getValues());
+                double avgYaw = MathUtil.average(yawBuffer.getValues());
+                double jerkAsymmetry = stddevYaw - stddevPitch;
 
-            double stddevYaw = MathUtil.stddev(yawBuffer.getValues());
-            double stddevPitch = MathUtil.stddev(pitchBuffer.getValues());
-            double avgYaw = MathUtil.average(yawBuffer.getValues());
+                if (jerkAsymmetry > 4 && avgYaw < 2) {
+                    flag(player);
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimDynamics(JerkAsymmetry)");
+                }
 
-            double jerkAsymmetry = stddevYaw - stddevPitch;
-
-            if (jerkAsymmetry > 4 && avgYaw < 2) {
-                flag(player);
-                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimDynamics(JerkAsymmetry)");
+                yawBuffer.getValues().clear();
+                pitchBuffer.getValues().clear();
             }
-
-            yawBuffer.getValues().clear();
-            pitchBuffer.getValues().clear();
         }
     }
 }

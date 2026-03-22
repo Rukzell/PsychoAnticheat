@@ -22,8 +22,8 @@ public class AimConsistency extends Check {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
-            VlBuffer bufferYawDistinct = player.getBuffer("AimAssistConsistency:yawDistinct");
-            VlBuffer bufferPitchDistinct = player.getBuffer("AimAssistConsistency:pitchDistinct");
+            VlBuffer bufferYawDistinct = player.getBuffer("AimConsistency:yawDistinct");
+            VlBuffer bufferPitchDistinct = player.getBuffer("AimConsistency:pitchDistinct");
 
             SampleBuffer yawBufferStd = player.getSampleBuffer(getName() + ":yawStd", 20);
             SampleBuffer pitchBufferStd = player.getSampleBuffer(getName() + ":pitchStd", 20);
@@ -42,10 +42,10 @@ public class AimConsistency extends Check {
                 if (bufferYawMonotonic.getVl() > 10) {
                     flag(player);
                     bufferYawMonotonic.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(MonotonicXAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(MonotonicXAxis)");
                 }
             } else {
-                bufferYawMonotonic.decay(2);
+                bufferYawMonotonic.decay(3);
             }
 
             if (Math.abs(player.getDeltaPitch()) < Math.abs(player.getLastDeltaPitch())) {
@@ -53,16 +53,16 @@ public class AimConsistency extends Check {
                 if (bufferPitchMonotonic.getVl() > 10) {
                     flag(player);
                     bufferPitchMonotonic.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(MonotonicYAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(MonotonicYAxis)");
                 }
             } else {
-                bufferPitchMonotonic.decay(2);
+                bufferPitchMonotonic.decay(3);
             }
 
             if (yawBufferStd.isFull()) {
                 if (MathUtil.stddev(yawBufferStd.getValues()) < 0.05) {
                     flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(StdDevXAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(StdDevXAxis)");
                 }
 
                 yawBufferStd.getValues().clear();
@@ -71,7 +71,7 @@ public class AimConsistency extends Check {
             if (pitchBufferStd.isFull()) {
                 if (MathUtil.stddev(pitchBufferStd.getValues()) < 0.05) {
                     flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(StdDevYAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(StdDevYAxis)");
                 }
 
                 pitchBufferStd.getValues().clear();
@@ -81,16 +81,16 @@ public class AimConsistency extends Check {
                 int distinct = MathUtil.distinct(yawBufferDistinct.getValues());
                 double avg = MathUtil.average(yawBufferDistinct.getValues());
 
-                if (distinct < 8 && avg > 0.5) {
+                if (distinct < 8 && avg > 1) {
                     bufferYawDistinct.fail(1);
                 } else {
                     bufferYawDistinct.decay(0.3);
                 }
 
-                if (bufferYawDistinct.getVl() > 3) {
+                if (bufferYawDistinct.getVl() > 4) {
                     flag(player);
                     bufferYawDistinct.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(DistinctXAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(DistinctXAxis)");
                 }
                 yawBufferDistinct.getValues().clear();
             }
@@ -99,13 +99,13 @@ public class AimConsistency extends Check {
                 int distinct = MathUtil.distinct(pitchBufferDistinct.getValues());
                 double avg = MathUtil.average(pitchBufferDistinct.getValues());
 
-                if (distinct < 8 && avg > 0.5) {
+                if (distinct < 8 && avg > 1) {
                     bufferPitchDistinct.fail(1);
                 } else {
                     bufferPitchDistinct.decay(0.3);
                 }
 
-                if (bufferPitchDistinct.getVl() > 3) {
+                if (bufferPitchDistinct.getVl() > 4) {
                     flag(player);
                     bufferPitchDistinct.setVl(0);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(DistinctYAxis)");

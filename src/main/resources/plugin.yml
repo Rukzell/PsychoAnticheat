@@ -15,3 +15,7 @@ commands:
 permissions:
   psycho.admin:
     default: op
+  psycho.train:
+    default: op
+  psycho.collect:
+    default: op

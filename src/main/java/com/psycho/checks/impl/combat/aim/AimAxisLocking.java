@@ -7,8 +7,8 @@ import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.buffer.VlBuffer;
 
-public class AimAngleLocking extends Check {
-    public AimAngleLocking(String cfgPath, CheckCfg cfg) {
+public class AimAxisLocking extends Check {
+    public AimAxisLocking(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
     }
 
@@ -19,19 +19,19 @@ public class AimAngleLocking extends Check {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
-            VlBuffer bufferYaw = player.getBuffer("AimAssistAngleLocking:yaw");
-            VlBuffer bufferPitch = player.getBuffer("AimAssistAngleLocking:pitch");
+            VlBuffer bufferYaw = player.getBuffer("AimAxisLocking:yaw");
+            VlBuffer bufferPitch = player.getBuffer("AimAxisLocking:pitch");
 
-            if (Math.abs(player.getDeltaYaw()) > 1 && Math.abs(player.getLastDeltaYaw()) < 0.01) {
+            if (Math.abs(player.getDeltaYaw()) > 1 && Math.abs(player.getLastDeltaYaw()) < 0.005) {
                 bufferYaw.fail(1);
             } else {
-                bufferYaw.decay(0.05);
+                bufferYaw.decay(0.2);
             }
 
-            if (Math.abs(player.getDeltaPitch()) > 1 && Math.abs(player.getLastDeltaPitch()) < 0.01) {
+            if (Math.abs(player.getDeltaPitch()) > 1 && Math.abs(player.getLastDeltaPitch()) < 0.005) {
                 bufferPitch.fail(1);
             } else {
-                bufferPitch.decay(0.05);
+                bufferPitch.decay(0.2);
             }
 
             if (bufferYaw.getVl() > 5) {

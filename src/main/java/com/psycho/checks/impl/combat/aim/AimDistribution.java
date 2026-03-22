@@ -16,7 +16,8 @@ public class AimDistribution extends Check {
 
     @Override
     public void handle(PsychoPlayer player, PacketReceiveEvent event) {
-        if (player.getTimeSinceLastHit() > 2000 || (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0) || !getCfg().enabled()) return;
+        if (player.getTimeSinceLastHit() > 2000 || (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0) || !getCfg().enabled())
+            return;
 
         float deltaYaw = Math.abs(player.getDeltaYaw());
         float deltaPitch = Math.abs(player.getDeltaPitch());
@@ -40,7 +41,7 @@ public class AimDistribution extends Check {
             if (robustZeroVlBufferYaw.getVl() > 4) {
                 flag(player);
                 robustZeroVlBufferYaw.setVl(0);
-                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistDistribution(robustZeroX)");
+                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimDistribution(robustZeroX)");
             }
             yawBuffer.getValues().clear();
         } else {
@@ -52,7 +53,7 @@ public class AimDistribution extends Check {
             if (robustZeroVlBufferPitch.getVl() > 4) {
                 flag(player);
                 robustZeroVlBufferPitch.setVl(0);
-                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistDistribution(robustZeroY)");
+                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimDistribution(robustZeroY)");
             }
             pitchBuffer.getValues().clear();
         } else {

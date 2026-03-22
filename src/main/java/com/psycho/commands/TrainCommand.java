@@ -1,13 +1,14 @@
 package com.psycho.commands;
 
 import com.psycho.Psycho;
-import com.psycho.ml.gru.GRU;
 import com.psycho.ml.gru.FeatureNormalizer;
+import com.psycho.ml.gru.GRU;
 import org.bukkit.command.CommandSender;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TrainCommand implements SubCommand {
@@ -74,25 +75,34 @@ public class TrainCommand implements SubCommand {
                     boolean isFirst = true;
 
                     while ((line = br.readLine()) != null) {
-                        if (isFirst) { isFirst = false; continue; }
+                        if (isFirst) {
+                            isFirst = false;
+                            continue;
+                        }
                         String[] parts = line.split(",");
                         if (parts.length < 7) continue;
 
                         double[] x = new double[6];
                         for (int i = 0; i < 6; i++) {
-                            try { x[i] = Double.parseDouble(parts[i]); }
-                            catch (Exception e) { x[i] = 0; }
+                            try {
+                                x[i] = Double.parseDouble(parts[i]);
+                            } catch (Exception e) {
+                                x[i] = 0;
+                            }
                         }
 
                         double label = 0;
-                        try { label = Double.parseDouble(parts[6]); } catch (Exception ignored) {}
+                        try {
+                            label = Double.parseDouble(parts[6]);
+                        } catch (Exception ignored) {
+                        }
 
                         dataRows.add(x);
                         targetRows.add(new double[]{label});
                     }
                 }
 
-                int seqLength = 70;
+                int seqLength = 60;
                 int sequenceCount = dataRows.size() / seqLength;
                 if (sequenceCount == 0) {
                     sender.sendMessage("§cNot enough data for a single sequence.");

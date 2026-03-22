@@ -35,7 +35,7 @@ public class ConfigService {
         return new MessagesCfg(
                 getString("messages.prefix", "§c[Psycho]"),
                 getString("messages.no-permission", "§cYou do not have permission to do this!"),
-                getString("messages.alert", "{prefix} §7{player} §cfailed §7{check} §c{vl}§7/§c{maxVl} ")
+                getString("messages.alert", "{prefix} #ffe1c9{player} &7› #ff4500{check} &8| §7[#ffe1c9{vlBar}§7] &8| #ff4500{vl}&8/#ff4500{maxVl} &8({info}&8)")
         );
     }
 

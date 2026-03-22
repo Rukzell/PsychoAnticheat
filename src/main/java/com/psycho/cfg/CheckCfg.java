@@ -1,11 +1,11 @@
 package com.psycho.cfg;
 
 public class CheckCfg {
+    private final double probThreshold;
     private int vlThreshold;
     private String punishCommand;
     private double decay;
     private double bufferThreshold;
-    private double probThreshold;
     private boolean enabled;
 
     public CheckCfg(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled) {

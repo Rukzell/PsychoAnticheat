@@ -1,7 +1,10 @@
 package com.psycho.services;
 
 import com.psycho.Psycho;
-import com.psycho.commands.*;
+import com.psycho.commands.CollectCommand;
+import com.psycho.commands.ReloadCommand;
+import com.psycho.commands.SubCommand;
+import com.psycho.commands.TrainCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

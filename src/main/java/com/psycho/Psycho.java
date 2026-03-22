@@ -2,7 +2,6 @@ package com.psycho;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import com.psycho.cfg.MessagesCfg;
 import com.psycho.listeners.CheckListener;
 import com.psycho.listeners.ConnectionListener;
@@ -10,6 +9,7 @@ import com.psycho.services.CheckService;
 import com.psycho.services.CommandService;
 import com.psycho.services.ConfigService;
 import com.psycho.utils.Logger;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -21,6 +21,10 @@ public final class Psycho extends JavaPlugin {
     private ConfigService configService;
     private CommandService commandService;
     private CheckListener checkListener;
+
+    public static Psycho get() {
+        return instance;
+    }
 
     private void create() {
         instance = this;
@@ -80,9 +84,5 @@ public final class Psycho extends JavaPlugin {
 
     public ConnectionListener getConnectionListener() {
         return connectionListener;
-    }
-
-    public static Psycho get() {
-        return instance;
     }
 }

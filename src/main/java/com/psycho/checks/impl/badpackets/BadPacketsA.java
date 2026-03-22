@@ -13,6 +13,8 @@ public class BadPacketsA extends Check {
 
     @Override
     public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+        if (!getCfg().enabled()) return;
+
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             if (Math.abs(player.getPitch()) > 90.2) {
                 flag(player);

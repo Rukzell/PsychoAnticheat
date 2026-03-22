@@ -3,9 +3,7 @@ package com.psycho.listeners;
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
+import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.psycho.Psycho;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
@@ -38,9 +36,35 @@ public class CheckListener implements PacketListener {
             check.handle(psychoPlayer, event);
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-            WrapperPlayClientPlayerRotation wrapper = new WrapperPlayClientPlayerRotation(event);
-            psychoPlayer.registerRotation(wrapper.getYaw(), wrapper.getPitch());
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
+            WrapperPlayClientPlayerPositionAndRotation wrapper =
+                    new WrapperPlayClientPlayerPositionAndRotation(event);
+            psychoPlayer.registerPosition(
+                    wrapper.getPosition().getX(),
+                    wrapper.getPosition().getY(),
+                    wrapper.getPosition().getZ()
+            );
+            psychoPlayer.registerRotation(
+                    wrapper.getYaw(),
+                    wrapper.getPitch()
+            );
+
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+            WrapperPlayClientPlayerRotation wrapper =
+                    new WrapperPlayClientPlayerRotation(event);
+            psychoPlayer.registerRotation(
+                    wrapper.getYaw(),
+                    wrapper.getPitch()
+            );
+
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
+            WrapperPlayClientPlayerPosition wrapper =
+                    new WrapperPlayClientPlayerPosition(event);
+            psychoPlayer.registerPosition(
+                    wrapper.getPosition().getX(),
+                    wrapper.getPosition().getY(),
+                    wrapper.getPosition().getZ()
+            );
         }
 
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
@@ -61,7 +85,8 @@ public class CheckListener implements PacketListener {
                     psychoPlayer.registerStopSprint();
                     psychoPlayer.updateSprintPacketTime();
                 }
-                default -> { }
+                default -> {
+                }
             }
         }
 

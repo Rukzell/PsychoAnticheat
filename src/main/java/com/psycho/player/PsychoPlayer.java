@@ -1,22 +1,33 @@
 package com.psycho.player;
 
-import lombok.Data;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.User;
+import com.psycho.ml.DataCollector;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.buffer.VlBuffer;
+import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import com.psycho.ml.DataCollector;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 public class PsychoPlayer {
     private final Player bukkitPlayer;
+    private final User user;
     private final Map<String, Integer> violations = new HashMap<>();
     private final Map<String, VlBuffer> buffers = new HashMap<>();
     private final Map<String, SampleBuffer> sampleBuffers = new HashMap<>();
     private final Map<String, Long> lastDecayTime = new HashMap<>();
+
+    // hits
+    private final Deque<Long> hitTimestamps;
+    private final Deque<Long> hitDelays;
     private long lastFlagTime;
+    private long lastHit;
 
     // rotation
     private float yaw;
@@ -34,13 +45,13 @@ public class PsychoPlayer {
     private float jerkYaw;
     private float jerkPitch;
 
+    // position
+    private double x, y, z;
+    private double lastX, lastY, lastZ;
+    private double deltaX, deltaY, deltaZ;
+
     // ml
     private double avg;
-
-    // hits
-    private final Deque<Long> hitTimestamps;
-    private final Deque<Long> hitDelays;
-    private long lastHit;
 
     // entity action
     private boolean startSprint;
@@ -59,6 +70,7 @@ public class PsychoPlayer {
 
     public PsychoPlayer(Player bukkitPlayer) {
         this.bukkitPlayer = bukkitPlayer;
+        this.user = PacketEvents.getAPI().getPlayerManager().getUser(bukkitPlayer);
         this.hitTimestamps = new ArrayDeque<>();
         this.hitDelays = new ArrayDeque<>(20);
         this.lastHit = 0;
@@ -82,8 +94,20 @@ public class PsychoPlayer {
         this.jerkPitch = accelPitch - lastAccelPitch;
 
         this.sendAlerts = true;
-        
+
         DataCollector.collect(this);
+    }
+
+    public void registerPosition(double x, double y, double z) {
+        this.deltaX = x - this.lastX;
+        this.deltaY = y - this.lastY;
+        this.deltaZ = z - this.lastZ;
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.lastZ = this.z;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public void registerHit() {

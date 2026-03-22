@@ -1,6 +1,7 @@
 package com.psycho.services;
 
 import com.psycho.Psycho;
+import com.psycho.checks.Check;
 import com.psycho.checks.impl.badpackets.BadPacketsA;
 import com.psycho.checks.impl.combat.aim.*;
 import com.psycho.checks.impl.combat.killaura.KillAuraInvalid;
@@ -11,7 +12,6 @@ import com.psycho.checks.impl.inventory.InventoryB;
 import com.psycho.checks.impl.ml.AimML;
 import com.psycho.checks.impl.sprint.SprintA;
 import com.psycho.checks.impl.sprint.SprintB;
-import com.psycho.checks.Check;
 import com.psycho.checks.impl.sprint.SprintC;
 
 import java.util.ArrayList;
@@ -48,9 +48,9 @@ public class CheckService {
     private void registerChecks() {
         ConfigService cfg = plugin.getConfigService();
 
-        registerCheck(new AimAngleLocking("checks.aimassist.anglelocking", cfg.loadCheck("checks.aimassist.anglelocking", 10)));
+        registerCheck(new AimAxisLocking("checks.aimassist.anglelocking", cfg.loadCheck("checks.aimassist.anglelocking", 10)));
         registerCheck(new AimConsistency("checks.aimassist.consistency", cfg.loadCheck("checks.aimassist.consistency", 10)));
-        registerCheck(new AimAssistSpike("checks.aimassist.spike", cfg.loadCheck("checks.aimassist.spike", 10)));
+        registerCheck(new AimSpike("checks.aimassist.spike", cfg.loadCheck("checks.aimassist.spike", 10)));
         registerCheck(new AimDistribution("checks.aimassist.distribution", cfg.loadCheck("checks.aimassist.distribution", 10)));
         registerCheck(new AimSynthetic("checks.aimassist.syntheticnoise", cfg.loadCheck("checks.aimassist.syntheticnoise", 10)));
         registerCheck(new AimDynamics("checks.aimassist.dynamics", cfg.loadCheck("checks.aimassist.dynamics", 10)));

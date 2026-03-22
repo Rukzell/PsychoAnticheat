@@ -9,7 +9,7 @@ public record MessagesCfg(String prefix, String noPermission, String alertMessag
                 .replace("{vlBar}", vlBar)
                 .replace("{vl}", String.valueOf(vl))
                 .replace("{maxVl}", String.valueOf(maxVl))
-                .replace("{info}", info.isEmpty() ? "" : "§7(" + info + ")");
+                .replace("{info}", info.isEmpty() ? "" : "§7" + info);
         return msg;
     }
 }

@@ -10,11 +10,11 @@ import com.psycho.utils.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AimAssistSpike extends Check {
+public class AimSpike extends Check {
     private final List<Float> deltaYaws = new ArrayList<>();
     private final List<Float> deltaPitches = new ArrayList<>();
 
-    public AimAssistSpike(String cfgPath, CheckCfg cfg) {
+    public AimSpike(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
     }
 
@@ -28,17 +28,17 @@ public class AimAssistSpike extends Check {
             deltaPitches.add(Math.abs(player.getDeltaPitch()));
 
             if (deltaYaws.size() >= 3) {
-                if (deltaYaws.get(0) < 0.2 && deltaYaws.get(1) > 20 && deltaYaws.get(2) < 0.2) {
+                if (deltaYaws.get(0) < 0.2 && deltaYaws.get(1) > 25 && deltaYaws.get(2) < 0.2) {
                     flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistSpike(XAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimSpike(XAxis)");
                 }
                 deltaYaws.remove(0);
             }
 
             if (deltaPitches.size() >= 3) {
-                if (deltaPitches.get(0) < 0.2 && deltaPitches.get(1) > 20 && deltaPitches.get(2) < 0.2) {
+                if (deltaPitches.get(0) < 0.2 && deltaPitches.get(1) > 25 && deltaPitches.get(2) < 0.2) {
                     flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistSpike(YAxis)");
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimSpike(YAxis)");
                 }
                 deltaPitches.remove(0);
             }

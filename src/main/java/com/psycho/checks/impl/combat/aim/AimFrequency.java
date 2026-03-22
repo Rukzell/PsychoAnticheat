@@ -20,7 +20,7 @@ public class AimFrequency extends Check {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION && !(player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
             SampleBuffer yawBuffer = player.getSampleBuffer(getName() + ":yaw", 128);
             SampleBuffer pitchBuffer = player.getSampleBuffer(getName() + ":pitch", 128);
 
@@ -28,24 +28,28 @@ public class AimFrequency extends Check {
             pitchBuffer.add(Math.abs(player.getDeltaPitch()));
 
             if (yawBuffer.isFull()) {
-                double highFreqRatio = MathUtil.highFreqRatio(yawBuffer.getValues());
-                double spectralFlatness = MathUtil.spectralFlatness(yawBuffer.getValues());
+                double[] psd = MathUtil.welchPSD(yawBuffer.getValues(), 64, 32);
 
-                if (spectralFlatness > 0.82) {
+                double spectralFlatness = MathUtil.spectralFlatness(psd);
+                double highFreqRatio = MathUtil.highFreqRatio(psd);
+
+                if (spectralFlatness > 0.835) {
                     flag(player);
                     Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(XAxisSF), SF: " + spectralFlatness);
                 }
 
                 if (highFreqRatio > 0.35) {
                     flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(XAxisFFT), ratio: " + highFreqRatio);
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(XAxisHF), ratio: " + highFreqRatio);
                 }
                 yawBuffer.getValues().clear();
             }
 
             if (pitchBuffer.isFull()) {
-                double highFreqRatio = MathUtil.highFreqRatio(pitchBuffer.getValues());
-                double spectralFlatness = MathUtil.spectralFlatness(pitchBuffer.getValues());
+                double[] psd = MathUtil.welchPSD(yawBuffer.getValues(), 64, 32);
+
+                double spectralFlatness = MathUtil.spectralFlatness(psd);
+                double highFreqRatio = MathUtil.highFreqRatio(psd);
 
                 if (spectralFlatness > 0.82) {
                     flag(player);
@@ -54,7 +58,7 @@ public class AimFrequency extends Check {
 
                 if (highFreqRatio > 0.35) {
                     flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(YAxisFFT), ratio: " + highFreqRatio);
+                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(YAxisHF), ratio: " + highFreqRatio);
                 }
                 pitchBuffer.getValues().clear();
             }

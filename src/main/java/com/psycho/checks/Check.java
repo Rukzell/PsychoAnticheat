@@ -4,6 +4,8 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.psycho.Psycho;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.player.PsychoPlayer;
+import com.psycho.utils.Hex;
+import com.psycho.utils.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,9 +13,9 @@ import org.bukkit.util.Vector;
 
 public abstract class Check {
     private final Psycho plugin;
-    private CheckCfg cfg;
     private final String name;
-    private String cfgPath;
+    private final CheckCfg cfg;
+    private final String cfgPath;
 
     public Check(String cfgPath, CheckCfg cfg) {
         this.plugin = Psycho.get();
@@ -39,22 +41,25 @@ public abstract class Check {
         String vlBar = buildVlBar(vl, cfg.vlThreshold());
 
         if (vl >= cfg.vlThreshold()) {
+            Logger.log("executing punishment");
             Player bukkitPlayer = player.getBukkitPlayer();
             plugin.getConnectionListener().removePlayer(bukkitPlayer.getUniqueId());
-            Bukkit.getScheduler().runTask(plugin, () ->
-                    Bukkit.dispatchCommand(plugin.getServer().getConsoleSender(),
-                            cfg.punishCommand().replace("{player}", bukkitPlayer.getName()))
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                        Bukkit.dispatchCommand(plugin.getServer().getConsoleSender(),
+                                cfg.punishCommand().replace("{player}", bukkitPlayer.getName()));
+                        Logger.log("§a✓ punished");
+                    }
             );
         }
 
-        String message = plugin.getMessagesCfg().formatAlert(
+        String message = Hex.translateHexColors((plugin.getMessagesCfg().formatAlert(
                 player.getBukkitPlayer().getName(),
                 name,
                 vlBar,
                 vl,
                 cfg.vlThreshold(),
                 info
-        );
+        )));
 
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.hasPermission("psycho.admin")) {
@@ -88,9 +93,9 @@ public abstract class Check {
         StringBuilder bar = new StringBuilder("§7[");
         for (int i = 0; i < totalBars; i++) {
             if (i < filled) {
-                if (i < totalBars * 0.4)      bar.append("§a|");
+                if (i < totalBars * 0.4) bar.append("§a|");
                 else if (i < totalBars * 0.7) bar.append("§e|");
-                else                           bar.append("§c|");
+                else bar.append("§c|");
             } else {
                 bar.append("§8|");
             }

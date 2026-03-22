@@ -51,9 +51,9 @@ public class DataCollector {
 
     public static void collect(PsychoPlayer player) {
         if (!isCollecting(player.getBukkitPlayer().getUniqueId())) return;
-        
+
         int label = collectingTarget.get(player.getBukkitPlayer().getUniqueId());
-        
+
         String dataLine = String.format("%f,%f,%f,%f,%f,%f,%d\n",
                 player.getDeltaYaw(),
                 player.getDeltaPitch(),
@@ -62,9 +62,8 @@ public class DataCollector {
                 player.getJerkYaw(),
                 player.getJerkPitch(),
                 label
-        ).replace(",", "."); // Fix locale issues with comma in float, but we need comma for csv... wait.
+        ).replace(",", ".");
 
-        // Correct formatting for CSV
         dataLine = String.format(java.util.Locale.US, "%.5f,%.5f,%.5f,%.5f,%.5f,%.5f,%d\n",
                 player.getDeltaYaw(), player.getDeltaPitch(),
                 player.getAccelYaw(), player.getAccelPitch(),
@@ -74,7 +73,7 @@ public class DataCollector {
         try {
             if (writer != null) {
                 writer.write(dataLine);
-                writer.flush(); // Flush so we don't lose data on crash
+                writer.flush();
             }
         } catch (IOException e) {
             e.printStackTrace();

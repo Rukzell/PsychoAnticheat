@@ -1,9 +1,11 @@
 package com.psycho.utils.math;
 
 import org.jtransforms.fft.DoubleFFT_1D;
-import org.jtransforms.fft.FloatFFT_1D;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MathUtil {
@@ -253,12 +255,107 @@ public class MathUtil {
         return geoMean / arithMean;
     }
 
+
+    public static double[] welchPSD(Collection<? extends Number> samples, int segmentSize, int overlap) {
+        int n = samples.size();
+        if (n < segmentSize) return new double[0];
+
+        double[] signal = new double[n];
+        int idx = 0;
+        for (Number num : samples) {
+            signal[idx++] = num.doubleValue();
+        }
+
+        int step = segmentSize - overlap;
+        int segments = (signal.length - overlap) / step;
+        if (segments <= 0) return new double[0];
+
+        double mean = 0;
+        for (double v : signal) mean += v;
+        mean /= signal.length;
+
+        double[] window = new double[segmentSize];
+        for (int i = 0; i < segmentSize; i++) {
+            window[i] = 0.54 - 0.46 * Math.cos(2 * Math.PI * i / (segmentSize - 1));
+        }
+
+        DoubleFFT_1D fft = new DoubleFFT_1D(segmentSize);
+        double[] fftBuffer = new double[segmentSize * 2];
+        double[] psd = new double[segmentSize / 2];
+
+        double totalPower = 0;
+
+        for (int s = 0; s < segments; s++) {
+            int offset = s * step;
+            for (int i = 0; i < segmentSize; i++) {
+                double v = (signal[offset + i] - mean) * window[i];
+                fftBuffer[2 * i] = v;
+                fftBuffer[2 * i + 1] = 0;
+            }
+
+            fft.complexForward(fftBuffer);
+
+            for (int i = 0; i < segmentSize / 2; i++) {
+                double re = fftBuffer[2 * i];
+                double im = fftBuffer[2 * i + 1];
+                double power = re * re + im * im;
+                psd[i] += power;
+                totalPower += power;
+            }
+        }
+
+        for (int i = 0; i < psd.length; i++) {
+            psd[i] /= segments;
+        }
+
+        return psd;
+    }
+
+    public static double spectralFlatness(double[] psd) {
+        double geoMean = 1;
+        double arithMean = 0;
+        int n = psd.length;
+
+        for (double p : psd) {
+            geoMean *= (p + 1e-10);
+            arithMean += p;
+        }
+
+        geoMean = Math.pow(geoMean, 1.0 / n);
+        arithMean /= n;
+
+        return geoMean / (arithMean + 1e-10);
+    }
+
+    public static double highFreqRatio(double[] psd) {
+        int n = psd.length;
+        double high = 0, total = 0;
+        int cutoff = n / 2;
+
+        for (int i = 0; i < n; i++) {
+            if (i >= cutoff) high += psd[i];
+            total += psd[i];
+        }
+
+        return total == 0 ? 0 : high / total;
+    }
+
     public static double max(Collection<? extends Number> values) {
-        return values.stream().mapToDouble(Number::doubleValue).max().orElse(0.0);
+        double max = Double.NEGATIVE_INFINITY;
+        for (Number v : values) {
+            double d = v.doubleValue();
+            if (d > max) max = d;
+        }
+        return max == Double.NEGATIVE_INFINITY ? 0.0 : max;
     }
 
     public static double min(Collection<? extends Number> values) {
-        return values.stream().mapToDouble(Number::doubleValue).min().orElse(0.0);
+        double min = Double.POSITIVE_INFINITY;
+        for (Number v : values) {
+            double d = v.doubleValue();
+            if (d < min) min = d;
+        }
+        return min == Double.POSITIVE_INFINITY ? 0.0 : min;
     }
 
     private static double percentile(double[] arr, double percent) {

@@ -20,24 +20,21 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AimML extends Check {
+    private final Map<UUID, Deque<double[]>> playerSequences = new ConcurrentHashMap<>();
+    private final Map<UUID, Deque<Double>> playerProbHistory = new ConcurrentHashMap<>();
+    private final Map<UUID, double[][]> rawCache = new ConcurrentHashMap<>();
+    private final Map<UUID, double[][]> normalizedCache = new ConcurrentHashMap<>();
+    private final int seqLength = 60;
+    private final int probHistorySize = 10;
+    private final double decay;
     private GRU gru;
     private FeatureNormalizer normalizer;
 
-    private final Map<UUID, Deque<double[]>> playerSequences = new ConcurrentHashMap<>();
-    private final Map<UUID, Deque<Double>> playerProbHistory = new ConcurrentHashMap<>();
-
-    private final Map<UUID, double[][]> rawCache = new ConcurrentHashMap<>();
-    private final Map<UUID, double[][]> normalizedCache = new ConcurrentHashMap<>();
-
-    private final int seqLength = 50;
-    private final int probHistorySize = 10;
-    private final double decay;
-
     public AimML(String cfgPath, CheckCfg cfg) {
         super(cfgPath, cfg);
-        File dir       = new File(Psycho.get().getDataFolder(), "ml");
+        File dir = new File(Psycho.get().getDataFolder(), "ml");
         File modelFile = new File(dir, "model.bin");
-        File normFile  = new File(dir, "normalizer.bin");
+        File normFile = new File(dir, "normalizer.bin");
         if (modelFile.exists() && normFile.exists()) {
             try {
                 gru = GRU.load(modelFile);
@@ -102,6 +99,8 @@ public class AimML extends Check {
         } else {
             buffer.decay(decay);
         }
+
+//        player.getBukkitPlayer().sendMessage("avg=" + avgProb * 100);
 
         if (buffer.getVl() > 5) {
             flag(player, String.format("avg=%.2f", avgProb * 100));
