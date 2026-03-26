@@ -9,12 +9,12 @@ import com.psycho.player.PsychoPlayer;
 
 public class SprintA extends Check {
 
-    public SprintA(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    public SprintA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (player.getTimeSinceLastHit() > 2000 || player.getCps() > 3 || !getCfg().enabled()) {
             return;
         }
@@ -24,15 +24,15 @@ public class SprintA extends Check {
 
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
                 if (player.isStartSprint()) {
-                    flag(player);
-                    setback(player);
+                    flag();
+                    setback();
                 }
             }
 
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
                 if (player.isStopSprint()) {
-                    flag(player);
-                    setback(player);
+                    flag();
+                    setback();
                 }
             }
         }

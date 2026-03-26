@@ -8,12 +8,12 @@ import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
 
 public class KillAuraInvalid extends Check {
-    public KillAuraInvalid(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    public KillAuraInvalid(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (!getCfg().enabled()) {
             return;
         }
@@ -23,7 +23,7 @@ public class KillAuraInvalid extends Check {
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 if (player.getBukkitPlayer().isHandRaised()) {
                     event.setCancelled(true);
-                    flag(player);
+                    flag();
                 }
             }
         }

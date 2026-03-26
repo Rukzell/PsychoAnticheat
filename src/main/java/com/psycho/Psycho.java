@@ -12,6 +12,7 @@ import com.psycho.utils.Logger;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.Objects;
 
 public final class Psycho extends JavaPlugin {
@@ -41,6 +42,8 @@ public final class Psycho extends JavaPlugin {
     public void onEnable() {
         create();
         saveDefaultConfig();
+
+        new File(getDataFolder(), "ml").mkdirs();
 
         PacketEvents.getAPI().init();
         PacketEvents.getAPI().load();

@@ -3,6 +3,8 @@ package com.psycho.commands;
 import com.psycho.Psycho;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
+import com.psycho.player.PsychoPlayer;
+import com.psycho.services.ConfigService;
 import org.bukkit.command.CommandSender;
 
 import java.util.Collections;
@@ -27,14 +29,27 @@ public class ReloadCommand implements SubCommand {
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        var configService = plugin.getConfigService();
-        var checkService = plugin.getCheckService();
         plugin.reloadConfig();
+
         plugin.getCheckService().reload();
-        for (Check check : checkService.getRegisteredChecks()) {
-            CheckCfg newCfg = configService.loadCheck(check.getCfgPath(), 10);
-            check.getCfg().updateFromConfig(newCfg.vlThreshold(), newCfg.punishCommand(), newCfg.decay(), newCfg.bufferThreshold(), newCfg.probThreshold(), newCfg.enabled());
+
+        ConfigService cfg = plugin.getConfigService();
+
+        for (PsychoPlayer psychoPlayer : plugin.getConnectionListener().getPlayers().values()) {
+            for (Check check : psychoPlayer.getChecks()) {
+                CheckCfg newCfg = cfg.loadCheck(check.getCfgPath(), 10);
+                check.getCfg().updateFromConfig(
+                        newCfg.vlThreshold(),
+                        newCfg.punishCommand(),
+                        newCfg.decay(),
+                        newCfg.bufferThreshold(),
+                        newCfg.probThreshold(),
+                        newCfg.enabled(),
+                        newCfg.vlDecayInterval()
+                );
+            }
         }
+
         sender.sendMessage("§aPsycho reloaded.");
     }
 

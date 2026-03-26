@@ -42,11 +42,19 @@ public class CollectCommand implements SubCommand {
         String type = args[2].toLowerCase();
 
         if (type.equals("stop")) {
-            DataCollector.stopCollecting(target.getUniqueId());
-            sender.sendMessage("§aStopped collecting data for " + target.getName());
+            if (DataCollector.isCollecting(target.getUniqueId())) {
+                DataCollector.stopCollecting(target.getUniqueId());
+                sender.sendMessage("§aStopped collecting data for " + target.getName());
+            } else {
+                sender.sendMessage("§cPlayer is not currently participating in data collection.");
+            }
         } else if (type.equals("legit")) {
-            DataCollector.startCollecting(target.getUniqueId(), 0);
-            sender.sendMessage("§aStarted collecting legit data for " + target.getName());
+            if (!DataCollector.isCollecting(target.getUniqueId())) {
+                DataCollector.startCollecting(target.getUniqueId(), 0);
+                sender.sendMessage("§aStarted collecting legit data for " + target.getName());
+            } else {
+                sender.sendMessage("§cPlayer is already participating in data collection.");
+            }
         } else if (type.equals("cheat")) {
             DataCollector.startCollecting(target.getUniqueId(), 1);
             sender.sendMessage("§aStarted collecting cheat data for " + target.getName());

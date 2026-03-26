@@ -4,26 +4,27 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
-import com.psycho.utils.Logger;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.buffer.VlBuffer;
 import com.psycho.utils.math.MathUtil;
 
 public class AimDistribution extends Check {
-    public AimDistribution(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    private final SampleBuffer yawBuffer = new SampleBuffer(30);
+    private final SampleBuffer pitchBuffer = new SampleBuffer(30);
+    private final VlBuffer robustZeroVlBufferYaw = new VlBuffer();
+    private final VlBuffer robustZeroVlBufferPitch = new VlBuffer();
+
+    public AimDistribution(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (player.getTimeSinceLastHit() > 2000 || (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0) || !getCfg().enabled())
             return;
 
         float deltaYaw = Math.abs(player.getDeltaYaw());
         float deltaPitch = Math.abs(player.getDeltaPitch());
-
-        SampleBuffer yawBuffer = player.getSampleBuffer(getName() + ":yaw", 30);
-        SampleBuffer pitchBuffer = player.getSampleBuffer(getName() + ":pitch", 30);
 
         yawBuffer.add(deltaYaw);
         pitchBuffer.add(deltaPitch);
@@ -33,15 +34,11 @@ public class AimDistribution extends Check {
         double yawIQR = MathUtil.robustRangeIQR(yawBuffer.getValues());
         double pitchIQR = MathUtil.robustRangeIQR(pitchBuffer.getValues());
 
-        VlBuffer robustZeroVlBufferYaw = player.getBuffer(getName() + ":robust-zero-vl-buffer-yaw");
-        VlBuffer robustZeroVlBufferPitch = player.getBuffer(getName() + ":robust-zero-vl-buffer-pitch");
-
         if (yawIQR == 0) {
             robustZeroVlBufferYaw.fail(1);
             if (robustZeroVlBufferYaw.getVl() > 4) {
-                flag(player);
+                flag("RobustXAxis");
                 robustZeroVlBufferYaw.setVl(0);
-                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimDistribution(robustZeroX)");
             }
             yawBuffer.getValues().clear();
         } else {
@@ -51,9 +48,8 @@ public class AimDistribution extends Check {
         if (pitchIQR == 0) {
             robustZeroVlBufferPitch.fail(1);
             if (robustZeroVlBufferPitch.getVl() > 4) {
-                flag(player);
+                flag("RobustYAxis");
                 robustZeroVlBufferPitch.setVl(0);
-                Logger.log(player.getBukkitPlayer().getName() + " flagged for AimDistribution(robustZeroY)");
             }
             pitchBuffer.getValues().clear();
         } else {

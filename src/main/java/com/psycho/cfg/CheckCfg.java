@@ -1,20 +1,22 @@
 package com.psycho.cfg;
 
 public class CheckCfg {
-    private final double probThreshold;
+    private double probThreshold;
     private int vlThreshold;
     private String punishCommand;
     private double decay;
     private double bufferThreshold;
     private boolean enabled;
+    private long vlDecayInterval;
 
-    public CheckCfg(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled) {
+    public CheckCfg(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled, long vlDecayInterval) {
         this.vlThreshold = vlThreshold;
         this.punishCommand = punishCommand;
         this.enabled = enabled;
         this.decay = decay;
         this.bufferThreshold = bufferThreshold;
         this.probThreshold = probThreshold;
+        this.vlDecayInterval = vlDecayInterval;
     }
 
     public int vlThreshold() {
@@ -41,11 +43,17 @@ public class CheckCfg {
         return enabled;
     }
 
-    public void updateFromConfig(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled) {
+    public long vlDecayInterval() {
+        return vlDecayInterval;
+    }
+
+    public void updateFromConfig(int vlThreshold, String punishCommand, double decay, double bufferThreshold, double probThreshold, boolean enabled, long vlDecayInterval) {
         this.vlThreshold = vlThreshold;
         this.punishCommand = punishCommand;
         this.enabled = enabled;
         this.decay = decay;
         this.bufferThreshold = bufferThreshold;
+        this.probThreshold = probThreshold;
+        this.vlDecayInterval = vlDecayInterval;
     }
 }

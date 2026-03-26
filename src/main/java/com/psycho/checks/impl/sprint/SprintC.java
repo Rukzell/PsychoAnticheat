@@ -8,12 +8,12 @@ import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
 
 public class SprintC extends Check {
-    public SprintC(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    public SprintC(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (player.getTimeSinceLastHit() > 2000 || player.getCps() > 3 || !getCfg().enabled()) {
             return;
         }
@@ -22,8 +22,8 @@ public class SprintC extends Check {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
                 if (player.getBukkitPlayer().isHandRaised()) {
-                    flag(player);
-                    setback(player);
+                    flag();
+                    setback();
                 }
             }
         }

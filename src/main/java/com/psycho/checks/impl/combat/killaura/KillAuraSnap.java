@@ -6,15 +6,14 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
-import com.psycho.utils.Logger;
 
 public class KillAuraSnap extends Check {
-    public KillAuraSnap(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    public KillAuraSnap(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (!getCfg().enabled()) {
             return;
         }
@@ -34,18 +33,15 @@ public class KillAuraSnap extends Check {
                 boolean snap3 = lastDeltaYaw < 0 && deltaYaw > 50 || lastDeltaYaw > 0 && deltaYaw < -50;
 
                 if (snap1) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for KillAuraSnap(1)");
+                    flag("1");
                 }
 
                 if (snap2) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for KillAuraSnap(2)");
+                    flag("2");
                 }
 
                 if (snap3) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for KillAuraSnap(3)");
+                    flag("3");
                 }
             }
         }

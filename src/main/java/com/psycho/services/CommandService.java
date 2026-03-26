@@ -1,10 +1,7 @@
 package com.psycho.services;
 
 import com.psycho.Psycho;
-import com.psycho.commands.CollectCommand;
-import com.psycho.commands.ReloadCommand;
-import com.psycho.commands.SubCommand;
-import com.psycho.commands.TrainCommand;
+import com.psycho.commands.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,6 +26,7 @@ public class CommandService implements CommandExecutor, TabCompleter {
         register(new ReloadCommand(plugin));
         register(new CollectCommand(plugin));
         register(new TrainCommand(plugin));
+        register(new StatsCommand(plugin));
     }
 
     private void register(SubCommand command) {

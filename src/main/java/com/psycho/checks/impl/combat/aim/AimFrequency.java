@@ -5,25 +5,24 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
-import com.psycho.utils.Logger;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.math.MathUtil;
 
 public class AimFrequency extends Check {
-    public AimFrequency(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    private final SampleBuffer yawBuffer = new SampleBuffer(128);
+    private final SampleBuffer pitchBuffer = new SampleBuffer(128);
+
+    public AimFrequency(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (player.getTimeSinceLastHit() > 2000 || !getCfg().enabled()) {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION && !(player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
-            SampleBuffer yawBuffer = player.getSampleBuffer(getName() + ":yaw", 128);
-            SampleBuffer pitchBuffer = player.getSampleBuffer(getName() + ":pitch", 128);
-
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             yawBuffer.add(Math.abs(player.getDeltaYaw()));
             pitchBuffer.add(Math.abs(player.getDeltaPitch()));
 
@@ -33,32 +32,28 @@ public class AimFrequency extends Check {
                 double spectralFlatness = MathUtil.spectralFlatness(psd);
                 double highFreqRatio = MathUtil.highFreqRatio(psd);
 
-                if (spectralFlatness > 0.835) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(XAxisSF), SF: " + spectralFlatness);
+                if (spectralFlatness > 0.9) {
+                    flag("SpectralFlatnessXAxis");
                 }
 
-                if (highFreqRatio > 0.35) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(XAxisHF), ratio: " + highFreqRatio);
+                if (highFreqRatio > 0.4) {
+                    flag("HighFreqXAxis");
                 }
                 yawBuffer.getValues().clear();
             }
 
             if (pitchBuffer.isFull()) {
-                double[] psd = MathUtil.welchPSD(yawBuffer.getValues(), 64, 32);
+                double[] psd = MathUtil.welchPSD(pitchBuffer.getValues(), 64, 32);
 
                 double spectralFlatness = MathUtil.spectralFlatness(psd);
                 double highFreqRatio = MathUtil.highFreqRatio(psd);
 
-                if (spectralFlatness > 0.82) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(YAxisSF), SF: " + spectralFlatness);
+                if (spectralFlatness > 0.9) {
+                    flag("SpectralFlatnessYAxis");
                 }
 
-                if (highFreqRatio > 0.35) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimFrequency(YAxisHF), ratio: " + highFreqRatio);
+                if (highFreqRatio > 0.4) {
+                    flag("HighFreqYAxis");
                 }
                 pitchBuffer.getValues().clear();
             }

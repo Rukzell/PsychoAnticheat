@@ -11,12 +11,12 @@ import com.psycho.utils.math.MathUtil;
 import java.util.Deque;
 
 public class KillAuraPattern extends Check {
-    public KillAuraPattern(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    public KillAuraPattern(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (!getCfg().enabled()) {
             return;
         }
@@ -26,8 +26,8 @@ public class KillAuraPattern extends Check {
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 Deque<Long> hitDelays = player.getHitDelays();
                 if (hitDelays.size() == 20 && MathUtil.stddev(hitDelays) <= 1.1) {
-                    flag(player);
-                    setback(player);
+                    flag();
+                    setback();
                 }
             }
         }

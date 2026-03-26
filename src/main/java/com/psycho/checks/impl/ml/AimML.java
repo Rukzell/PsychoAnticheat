@@ -9,59 +9,61 @@ import com.psycho.ml.gru.FeatureNormalizer;
 import com.psycho.ml.gru.GRU;
 import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.buffer.VlBuffer;
-import com.psycho.utils.math.MathUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AimML extends Check {
-    private final Map<UUID, Deque<double[]>> playerSequences = new ConcurrentHashMap<>();
-    private final Map<UUID, Deque<Double>> playerProbHistory = new ConcurrentHashMap<>();
-    private final Map<UUID, double[][]> rawCache = new ConcurrentHashMap<>();
-    private final Map<UUID, double[][]> normalizedCache = new ConcurrentHashMap<>();
-    private final int seqLength = 60;
-    private final int probHistorySize = 10;
-    private final double decay;
-    private GRU gru;
-    private FeatureNormalizer normalizer;
 
-    public AimML(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    private final Deque<double[]> recentData = new ArrayDeque<>();
+    private final Deque<Double> probHistory = new ArrayDeque<>();
+    private final double[][] raw;
+    private final double[][] normalized;
+    private final VlBuffer buffer = new VlBuffer();
+
+    private final int seqLength = 60;
+    private final int probHistorySize = 20;
+
+    private final GRU gru;
+    private final FeatureNormalizer normalizer;
+
+    public AimML(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
+        raw = new double[seqLength][6];
+        normalized = new double[seqLength][6];
+
         File dir = new File(Psycho.get().getDataFolder(), "ml");
         File modelFile = new File(dir, "model.bin");
         File normFile = new File(dir, "normalizer.bin");
+        GRU loadedGru = null;
+        FeatureNormalizer loadedNorm = null;
         if (modelFile.exists() && normFile.exists()) {
             try {
-                gru = GRU.load(modelFile);
-                normalizer = FeatureNormalizer.load(normFile);
+                loadedGru = GRU.load(modelFile);
+                loadedNorm = FeatureNormalizer.load(normFile);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        decay = cfg.decay();
+        this.gru = loadedGru;
+        this.normalizer = loadedNorm;
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (gru == null || normalizer == null || !getCfg().enabled()) return;
 
         if (event.getPacketType() != PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION &&
                 event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION) return;
 
-        UUID uuid = player.getBukkitPlayer().getUniqueId();
-
         if (player.getTimeSinceLastHit() > 2000) {
-            cleanupPlayer(uuid);
+            recentData.clear();
+            probHistory.clear();
             return;
         }
-
-        Deque<double[]> recentData = playerSequences.computeIfAbsent(uuid, k -> new ArrayDeque<>());
-        Deque<Double> probHistory = playerProbHistory.computeIfAbsent(uuid, k -> new ArrayDeque<>());
 
         recentData.add(new double[]{
                 player.getDeltaYaw(),
@@ -75,9 +77,6 @@ public class AimML extends Check {
         if (recentData.size() < seqLength) return;
         if (recentData.size() > seqLength) recentData.removeFirst();
 
-        double[][] raw = rawCache.computeIfAbsent(uuid, k -> new double[seqLength][6]);
-        double[][] normalized = normalizedCache.computeIfAbsent(uuid, k -> new double[seqLength][6]);
-
         int i = 0;
         for (double[] row : recentData) raw[i++] = row;
 
@@ -86,32 +85,26 @@ public class AimML extends Check {
         double currentProb = gru.forward(normalized)[0];
 
         probHistory.add(currentProb);
-        if (probHistory.size() > probHistorySize) probHistory.removeFirst();
+        if (probHistory.size() > probHistorySize) probHistory.removeFirst(); else return;
 
-        double sum = 0;
-        for (double p : probHistory) sum += p;
-        double avgProb = sum / probHistory.size();
+        double[] arr = probHistory.stream().mapToDouble(Double::doubleValue).toArray();
+        Arrays.sort(arr);
+        double median = arr[arr.length / 2];
+        if (arr.length % 2 == 0) {
+            median = (arr[arr.length / 2 - 1] + median) / 2.0;
+        }
 
-        VlBuffer buffer = player.getBuffer(getName());
-
-        if (avgProb >= 0.99 && MathUtil.min(probHistory) > 0.95) {
+        if (median > getCfg().probThreshold()) {
             buffer.fail(1);
         } else {
-            buffer.decay(decay);
+            buffer.decay(getCfg().decay());
         }
 
-//        player.getBukkitPlayer().sendMessage("avg=" + avgProb * 100);
-
-        if (buffer.getVl() > 5) {
-            flag(player, String.format("avg=%.2f", avgProb * 100));
-            buffer.setVl(0);
+        if (buffer.getVl() > getCfg().bufferThreshold()) {
+            flag(String.format("median=%.2f", median * 100));
         }
-    }
 
-    public void cleanupPlayer(UUID uuid) {
-        playerSequences.remove(uuid);
-        playerProbHistory.remove(uuid);
-        rawCache.remove(uuid);
-        normalizedCache.remove(uuid);
+        probHistory.clear();
+        recentData.clear();
     }
 }

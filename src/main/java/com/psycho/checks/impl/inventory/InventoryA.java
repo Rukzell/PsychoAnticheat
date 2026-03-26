@@ -7,12 +7,12 @@ import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
 
 public class InventoryA extends Check {
-    public InventoryA(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    public InventoryA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (!getCfg().enabled()) {
             return;
         }
@@ -20,8 +20,7 @@ public class InventoryA extends Check {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW || event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             if (player.getBukkitPlayer().isSprinting()) {
                 event.setCancelled(true);
-                flag(player);
-                setback(player);
+                flag();
             }
         }
     }

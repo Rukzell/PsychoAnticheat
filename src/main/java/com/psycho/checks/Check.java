@@ -16,27 +16,59 @@ public abstract class Check {
     private final String name;
     private final CheckCfg cfg;
     private final String cfgPath;
+    protected final PsychoPlayer player;
 
-    public Check(String cfgPath, CheckCfg cfg) {
+    private long lastVlDecayTime;
+
+    public Check(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
         this.plugin = Psycho.get();
         this.name = getClass().getSimpleName();
         this.cfg = cfg;
         this.cfgPath = cfgPath;
+        this.player = player;
+        this.lastVlDecayTime = System.currentTimeMillis();
     }
 
-    public abstract void handle(PsychoPlayer player, PacketReceiveEvent event);
-
-    public void flag(PsychoPlayer player) {
-        flag(player, "");
+    public final void process(PacketReceiveEvent event) {
+        tickVlDecay();
+        handle(event);
     }
 
-    public void flag(PsychoPlayer player, String info) {
+    protected abstract void handle(PacketReceiveEvent event);
+
+    private void tickVlDecay() {
+        long interval = cfg.vlDecayInterval();
+        if (interval <= 0) return;
+
+        long now = System.currentTimeMillis();
+        long elapsed = now - lastVlDecayTime;
+
+        if (elapsed >= interval) {
+            int ticks = (int) (elapsed / interval);
+            int currentVl = player.getViolation(name);
+            if (currentVl > 0) {
+                int newVl = Math.max(0, currentVl - ticks);
+                player.setViolation(name, newVl);
+            }
+            lastVlDecayTime = now;
+        }
+    }
+
+    public void flag() {
+        flag("");
+    }
+
+    public void flag(String info) {
         long now = System.currentTimeMillis();
         if (now - player.getLastFlagTime() < 1000) return;
         player.setLastFlagTime(now);
 
         int vl = player.getViolation(name) + 1;
         player.addViolation(name, 1);
+
+        lastVlDecayTime = now;
+
+        player.getStats().getFailedChecks().add(name);
 
         String vlBar = buildVlBar(vl, cfg.vlThreshold());
 
@@ -68,7 +100,7 @@ public abstract class Check {
         }
     }
 
-    public void setback(PsychoPlayer player) {
+    public void setback() {
         Player bukkitPlayer = player.getBukkitPlayer();
         Location safe = player.getLastSafeLocation();
 

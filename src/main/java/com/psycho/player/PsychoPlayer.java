@@ -2,26 +2,23 @@ package com.psycho.player;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
+import com.psycho.Psycho;
+import com.psycho.checks.Check;
 import com.psycho.ml.DataCollector;
-import com.psycho.utils.SampleBuffer;
-import com.psycho.utils.buffer.VlBuffer;
 import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class PsychoPlayer {
     private final Player bukkitPlayer;
     private final User user;
+    private final PlayerStats stats = new PlayerStats(this);
     private final Map<String, Integer> violations = new HashMap<>();
-    private final Map<String, VlBuffer> buffers = new HashMap<>();
-    private final Map<String, SampleBuffer> sampleBuffers = new HashMap<>();
     private final Map<String, Long> lastDecayTime = new HashMap<>();
+    private final List<Check> checks;
 
     // hits
     private final Deque<Long> hitTimestamps;
@@ -75,6 +72,7 @@ public class PsychoPlayer {
         this.hitDelays = new ArrayDeque<>(20);
         this.lastHit = 0;
         this.lastSafeLocation = bukkitPlayer.getLocation();
+        this.checks = Psycho.get().getCheckService().createChecksForPlayer(this);
     }
 
     public void registerRotation(float yaw, float pitch) {
@@ -157,10 +155,6 @@ public class PsychoPlayer {
         }
     }
 
-    public SampleBuffer getSampleBuffer(String key, int size) {
-        return sampleBuffers.computeIfAbsent(key, k -> new SampleBuffer(size));
-    }
-
     public void updateSprintPacketTime() {
         lastSprintPacket = System.nanoTime();
     }
@@ -190,16 +184,14 @@ public class PsychoPlayer {
         violations.put(checkName, getViolation(checkName) + amount);
     }
 
-    public VlBuffer getBuffer(String checkName) {
-        return buffers.computeIfAbsent(checkName, k -> new VlBuffer());
+    public void setViolation(String checkName, int value) {
+        violations.put(checkName, Math.max(0, value));
     }
 
-    public void resetViolation(String checkName) {
-        violations.remove(checkName);
-    }
-
-    public void resetAllViolations() {
-        violations.clear();
+    public void resetViolationsForCombatChecks() {
+        violations.entrySet().removeIf(entry ->
+                entry.getKey().startsWith("KillAura") ||
+                        entry.getKey().startsWith("Aim"));
     }
 
     public void updateSafeLocation() {
@@ -218,5 +210,15 @@ public class PsychoPlayer {
 
     public void setLastDecayTime(String check, long time) {
         lastDecayTime.put(check, time);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Check> T getCheck(Class<T> checkClass) {
+        for (Check check : checks) {
+            if (checkClass.isInstance(check)) {
+                return (T) check;
+            }
+        }
+        return null;
     }
 }

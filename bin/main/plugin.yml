@@ -1,0 +1,21 @@
+name: Psycho
+version: '${version}'
+main: com.psycho.Psycho
+api-version: '1.16'
+prefix: Psycho
+authors: [ Rukzell ]
+description: Anticheat
+depend:
+  - packetevents
+commands:
+  psycho:
+    description: TornadoAnticheat main command
+    usage: /psycho
+    permission: psycho.use
+permissions:
+  psycho.admin:
+    default: op
+  psycho.train:
+    default: op
+  psycho.collect:
+    default: op

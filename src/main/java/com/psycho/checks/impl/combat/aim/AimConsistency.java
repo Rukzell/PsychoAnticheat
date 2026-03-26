@@ -5,33 +5,31 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
-import com.psycho.utils.Logger;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.buffer.VlBuffer;
 import com.psycho.utils.math.MathUtil;
 
 public class AimConsistency extends Check {
-    public AimConsistency(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    private final VlBuffer bufferYawDistinct = new VlBuffer();
+    private final VlBuffer bufferPitchDistinct = new VlBuffer();
+    private final SampleBuffer yawBufferStd = new SampleBuffer(20);
+    private final SampleBuffer pitchBufferStd = new SampleBuffer(20);
+    private final SampleBuffer yawBufferDistinct = new SampleBuffer(10);
+    private final SampleBuffer pitchBufferDistinct = new SampleBuffer(10);
+    private final VlBuffer bufferYawMonotonic = new VlBuffer();
+    private final VlBuffer bufferPitchMonotonic = new VlBuffer();
+
+    public AimConsistency(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (player.getTimeSinceLastHit() > 2000 || !getCfg().enabled()) {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
-            VlBuffer bufferYawDistinct = player.getBuffer("AimConsistency:yawDistinct");
-            VlBuffer bufferPitchDistinct = player.getBuffer("AimConsistency:pitchDistinct");
-
-            SampleBuffer yawBufferStd = player.getSampleBuffer(getName() + ":yawStd", 20);
-            SampleBuffer pitchBufferStd = player.getSampleBuffer(getName() + ":pitchStd", 20);
-            SampleBuffer yawBufferDistinct = player.getSampleBuffer(getName() + ":yawDistinct", 10);
-            SampleBuffer pitchBufferDistinct = player.getSampleBuffer(getName() + ":pitchDistinct", 10);
-            VlBuffer bufferYawMonotonic = player.getBuffer(getName() + ":yawMonotonic");
-            VlBuffer bufferPitchMonotonic = player.getBuffer(getName() + ":pitchMonotonic");
-
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
             yawBufferStd.add(Math.abs(player.getDeltaYaw()));
             pitchBufferStd.add(Math.abs(player.getDeltaPitch()));
             yawBufferDistinct.add(Math.abs(player.getDeltaYaw()));
@@ -40,9 +38,8 @@ public class AimConsistency extends Check {
             if (Math.abs(player.getDeltaYaw()) < Math.abs(player.getLastDeltaYaw())) {
                 bufferYawMonotonic.fail(1);
                 if (bufferYawMonotonic.getVl() > 10) {
-                    flag(player);
+                    flag("MonotonicXAxis");
                     bufferYawMonotonic.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(MonotonicXAxis)");
                 }
             } else {
                 bufferYawMonotonic.decay(3);
@@ -51,9 +48,8 @@ public class AimConsistency extends Check {
             if (Math.abs(player.getDeltaPitch()) < Math.abs(player.getLastDeltaPitch())) {
                 bufferPitchMonotonic.fail(1);
                 if (bufferPitchMonotonic.getVl() > 10) {
-                    flag(player);
+                    flag("MonotonicYAxis");
                     bufferPitchMonotonic.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(MonotonicYAxis)");
                 }
             } else {
                 bufferPitchMonotonic.decay(3);
@@ -61,19 +57,15 @@ public class AimConsistency extends Check {
 
             if (yawBufferStd.isFull()) {
                 if (MathUtil.stddev(yawBufferStd.getValues()) < 0.05) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(StdDevXAxis)");
+                    flag("StdDevXAxis");
                 }
-
                 yawBufferStd.getValues().clear();
             }
 
             if (pitchBufferStd.isFull()) {
                 if (MathUtil.stddev(pitchBufferStd.getValues()) < 0.05) {
-                    flag(player);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(StdDevYAxis)");
+                    flag("StdDevYAxis");
                 }
-
                 pitchBufferStd.getValues().clear();
             }
 
@@ -88,9 +80,8 @@ public class AimConsistency extends Check {
                 }
 
                 if (bufferYawDistinct.getVl() > 4) {
-                    flag(player);
+                    flag("DistinctXAxis");
                     bufferYawDistinct.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimConsistency(DistinctXAxis)");
                 }
                 yawBufferDistinct.getValues().clear();
             }
@@ -106,9 +97,8 @@ public class AimConsistency extends Check {
                 }
 
                 if (bufferPitchDistinct.getVl() > 4) {
-                    flag(player);
+                    flag("DistinctYAxis");
                     bufferPitchDistinct.setVl(0);
-                    Logger.log(player.getBukkitPlayer().getName() + " flagged for AimAssistConsistency(DistinctYAxis)");
                 }
                 pitchBufferDistinct.getValues().clear();
             }

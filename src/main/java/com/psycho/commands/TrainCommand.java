@@ -125,17 +125,14 @@ public class TrainCommand implements SubCommand {
 
                 sender.sendMessage("§eData loaded: " + sequenceCount + " sequences.");
 
-                // ── Feature normalization ──────────────────────────────
                 FeatureNormalizer normalizer = new FeatureNormalizer(6);
                 normalizer.fit(sequences);
                 sequences = normalizer.transform(sequences);
                 normalizer.save(new File(dir, "normalizer.bin"));
 
-                // ── GRU training ──────────────────────────────────────
                 GRU gru = new GRU(6, 16, 1);
                 gru.train(sequences, targets, finalLr, finalEpochs);
 
-                // ── Save model ───────────────────────────────────────
                 File modelFile = new File(dir, "model.bin");
                 gru.save(modelFile);
 

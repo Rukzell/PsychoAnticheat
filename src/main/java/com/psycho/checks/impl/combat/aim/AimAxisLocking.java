@@ -8,20 +8,20 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.buffer.VlBuffer;
 
 public class AimAxisLocking extends Check {
-    public AimAxisLocking(String cfgPath, CheckCfg cfg) {
-        super(cfgPath, cfg);
+    private final VlBuffer bufferYaw = new VlBuffer();
+    private final VlBuffer bufferPitch = new VlBuffer();
+
+    public AimAxisLocking(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
-    public void handle(PsychoPlayer player, PacketReceiveEvent event) {
+    public void handle(PacketReceiveEvent event) {
         if (player.getTimeSinceLastHit() > 2000 || !getCfg().enabled()) {
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION && (player.getDeltaYaw() == 0 && player.getDeltaPitch() == 0)) {
-            VlBuffer bufferYaw = player.getBuffer("AimAxisLocking:yaw");
-            VlBuffer bufferPitch = player.getBuffer("AimAxisLocking:pitch");
-
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
             if (Math.abs(player.getDeltaYaw()) > 1 && Math.abs(player.getLastDeltaYaw()) < 0.005) {
                 bufferYaw.fail(1);
             } else {
@@ -35,12 +35,12 @@ public class AimAxisLocking extends Check {
             }
 
             if (bufferYaw.getVl() > 5) {
-                flag(player);
+                flag();
                 bufferYaw.setVl(0);
             }
 
             if (bufferPitch.getVl() > 5) {
-                flag(player);
+                flag();
                 bufferPitch.setVl(0);
             }
         }

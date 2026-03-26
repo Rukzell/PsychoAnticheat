@@ -407,8 +407,10 @@ public class GRU {
                 adamUpdate1D(br, dbr, mbr, vbr, lr, adamT);
             }
 
-            if (epoch % 10 == 0)
+            if (epoch % 10 == 0) {
                 System.out.printf("Epoch %4d  Loss: %.6f%n", epoch, totalLoss / sequences.length);
+                evaluate(sequences, targets);
+            }
         }
     }
 
@@ -513,6 +515,40 @@ public class GRU {
 
             dos.flush();
         }
+    }
+
+    public void evaluate(double[][][] sequences, double[][] targets) {
+
+        int tp = 0, tn = 0, fp = 0, fn = 0;
+
+        for (int i = 0; i < sequences.length; i++) {
+
+            double[] pred = forward(sequences[i]);
+            double y = pred[0] >= 0.5 ? 1.0 : 0.0;
+            double t = targets[i][0];
+
+            if (t == 1.0 && y == 1.0) tp++;
+            else if (t == 0.0 && y == 0.0) tn++;
+            else if (t == 0.0 && y == 1.0) fp++;
+            else if (t == 1.0 && y == 0.0) fn++;
+        }
+
+        int total = tp + tn + fp + fn;
+
+        double accuracy = (double)(tp + tn) / total;
+
+        double recall = tp / (double)(tp + fn + 1e-8);
+
+        double precision = tp / (double)(tp + fp + 1e-8);
+
+        double fpr = fp / (double)(fp + tn + 1e-8);
+
+        double f1 = 2 * precision * recall / (precision + recall + 1e-8);
+
+        System.out.printf(
+                "Accuracy: %.4f | Recall: %.4f | Precision: %.4f | F1: %.4f | FPR: %.4f%n",
+                accuracy, recall, precision, f1, fpr
+        );
     }
 
     // ── Internal forward result (for BPTT) ──────────────────────────────────

@@ -1,8 +1,6 @@
 package com.psycho.listeners;
 
-import com.psycho.Psycho;
-import com.psycho.checks.Check;
-import com.psycho.checks.impl.ml.AimML;
+import com.psycho.ml.DataCollector;
 import com.psycho.player.PsychoPlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,10 +27,7 @@ public class ConnectionListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         players.remove(event.getPlayer().getUniqueId());
-        Check check = Psycho.get().getCheckService().getCheck("AimML");
-        if (check instanceof AimML) {
-            ((AimML) check).cleanupPlayer(event.getPlayer().getUniqueId());
-        }
+        DataCollector.stopCollecting(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
