@@ -15,7 +15,7 @@ public class AimSynthetic extends Check {
     private final SampleBuffer pitchBuffer = new SampleBuffer(60);
 
     public AimSynthetic(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, true);
     }
 
     @Override

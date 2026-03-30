@@ -45,9 +45,9 @@ checks:
       vl-threshold: 10
       vl-decay-interval: 60
       punish-command: 'kick {player} §4Unfair Advantage'
-      prob-threshold: 0.8
-      buffer-threshold: 3
-      decay: 3 # buffer decay
+      prob-threshold: 0.5
+      buffer-threshold: 1
+      decay: 1 # buffer decay
 
   badpackets:
     a:
@@ -71,6 +71,18 @@ checks:
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 45
+      punish-command: 'kick {player} §4Unfair Advantage'
+    wallhit:
+      enabled: true
+      vl-threshold: 10
+      vl-decay-interval: 30
+      punish-command: 'kick {player} §4Unfair Advantage'
+
+  noslow:
+    a:
+      enabled: true
+      vl-threshold: 9
+      vl-decay-interval: 20
       punish-command: 'kick {player} §4Unfair Advantage'
 
   sprint:

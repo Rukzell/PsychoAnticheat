@@ -8,7 +8,7 @@ import com.psycho.player.PsychoPlayer;
 
 public class InventoryA extends Check {
     public InventoryA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, false);
     }
 
     @Override

@@ -2,13 +2,98 @@ package com.psycho.utils.math;
 
 import org.jtransforms.fft.DoubleFFT_1D;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MathUtil {
+    public static double sineFitError(double[] data, double w) {
+        int n = data.length;
+
+        double sumSin2 = 0;
+        double sumCos2 = 0;
+        double sumSinCos = 0;
+        double sumYSin = 0;
+        double sumYCos = 0;
+
+        for (int t = 0; t < n; t++) {
+            double sin = Math.sin(w * t);
+            double cos = Math.cos(w * t);
+            double y = data[t];
+
+            sumSin2 += sin * sin;
+            sumCos2 += cos * cos;
+            sumSinCos += sin * cos;
+
+            sumYSin += y * sin;
+            sumYCos += y * cos;
+        }
+
+        double det = sumSin2 * sumCos2 - sumSinCos * sumSinCos;
+        if (Math.abs(det) < 1e-6) return Double.MAX_VALUE;
+
+        double B = (sumYSin * sumCos2 - sumYCos * sumSinCos) / det;
+        double C = (sumYCos * sumSin2 - sumYSin * sumSinCos) / det;
+
+        double error = 0;
+
+        for (int t = 0; t < n; t++) {
+            double pred = B * Math.sin(w * t) + C * Math.cos(w * t);
+            double diff = data[t] - pred;
+            error += diff * diff;
+        }
+
+        return error / n;
+    }
+
+    public static double bestSineFit(double[] data) {
+        double bestError = Double.MAX_VALUE;
+
+        for (double w = 0.1; w < 1.5; w += 0.02) {
+            double err = sineFitError(data, w);
+            bestError = Math.min(bestError, err);
+        }
+
+        return bestError;
+    }
+
+    public static double[] zNormalize(Collection<? extends Number> values) {
+        int size = values.size();
+        double[] out = new double[size];
+
+        if (size == 0) {
+            return out;
+        }
+
+        double sum = 0.0;
+
+        for (Number n : values) {
+            sum += n.doubleValue();
+        }
+
+        double mean = sum / size;
+
+        double variance = 0.0;
+        for (Number n : values) {
+            double d = n.doubleValue() - mean;
+            variance += d * d;
+        }
+
+        double std = Math.sqrt(variance / size);
+
+        int i = 0;
+        if (std == 0) {
+            for (Number n : values) {
+                out[i++] = n.doubleValue() - mean;
+            }
+        } else {
+            for (Number n : values) {
+                out[i++] = (n.doubleValue() - mean) / std;
+            }
+        }
+
+        return out;
+    }
+
     public static double stddev(final Collection<? extends Number> values) {
         final double variance = variance(values);
 
@@ -309,6 +394,16 @@ public class MathUtil {
         }
 
         return psd;
+    }
+
+    public static double[] welchPSD(double[] data, int window, int overlap) {
+        List<Double> list = new ArrayList<>(data.length);
+
+        for (double v : data) {
+            list.add(v);
+        }
+
+        return welchPSD(list, window, overlap);
     }
 
     public static double spectralFlatness(double[] psd) {

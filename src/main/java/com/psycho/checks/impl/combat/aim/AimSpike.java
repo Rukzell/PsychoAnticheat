@@ -5,6 +5,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
+import com.psycho.utils.buffer.VlBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +15,10 @@ public class AimSpike extends Check {
     private final List<Float> deltaPitches = new ArrayList<>();
 
     public AimSpike(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, false);
     }
+
+    private final VlBuffer buffer = new VlBuffer();
 
     @Override
     public void handle(PacketReceiveEvent event) {
@@ -27,15 +30,25 @@ public class AimSpike extends Check {
             deltaPitches.add(Math.abs(player.getDeltaPitch()));
 
             if (deltaYaws.size() >= 3) {
-                if (deltaYaws.get(0) < 0.15 && deltaYaws.get(1) > 30 && deltaYaws.get(2) < 0.15) {
-                    flag("SpikeXAxis");
+                if (deltaYaws.get(0) < 0.15 && deltaYaws.get(1) > 20 && deltaYaws.get(2) < 0.15) {
+                    buffer.fail(1);
+                    if (buffer.getVl() > 1) {
+                        flag("SpikeXAxis");
+                    }
+                } else {
+                    buffer.decay(0.05);
                 }
                 deltaYaws.remove(0);
             }
 
             if (deltaPitches.size() >= 3) {
-                if (deltaPitches.get(0) < 0.15 && deltaPitches.get(1) > 30 && deltaPitches.get(2) < 0.15) {
-                    flag("SpikeYAxis");
+                if (deltaPitches.get(0) < 0.15 && deltaPitches.get(1) > 20 && deltaPitches.get(2) < 0.15) {
+                    buffer.fail(1);
+                    if (buffer.getVl() > 1) {
+                        flag("SpikeYAxis");
+                    }
+                } else {
+                    buffer.decay(0.05);
                 }
                 deltaPitches.remove(0);
             }

@@ -4,9 +4,7 @@ public class VlBuffer {
     private double vl;
 
     public void fail(double amount) {
-        if (vl < 10) {
-            vl += amount;
-        }
+        vl += amount;
     }
 
     public void decay(double decay) {

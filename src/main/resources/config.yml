@@ -8,15 +8,15 @@ checks:
     anglelocking:
       enabled: true
       vl-threshold: 10
-      vl-decay-interval: 30 # seconds before VL decrements by 1
+      vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
     consistency:
-      enabled: true
+      enabled: false
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
     distribution:
-      enabled: true
+      enabled: false
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
@@ -35,7 +35,7 @@ checks:
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    frequency:
+    signal:
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 30
@@ -53,7 +53,7 @@ checks:
     a:
       enabled: true
       vl-threshold: 1
-      vl-decay-interval: 0 # 0 = no decay
+      vl-decay-interval: 0
       punish-command: 'kick {player} §4Unfair Advantage'
 
   killaura:
@@ -72,22 +72,27 @@ checks:
       vl-threshold: 10
       vl-decay-interval: 45
       punish-command: 'kick {player} §4Unfair Advantage'
+    wallhit:
+      enabled: true
+      vl-threshold: 5
+      vl-decay-interval: 15
+      punish-command: 'kick {player} §4Unfair Advantage'
 
   sprint:
     a:
       enabled: true
       vl-threshold: 5
-      vl-decay-interval: 20
+      vl-decay-interval: 15
       punish-command: 'kick {player} §4Unfair Advantage'
     b:
       enabled: true
       vl-threshold: 5
-      vl-decay-interval: 20
+      vl-decay-interval: 15
       punish-command: 'kick {player} §4Unfair Advantage'
     c:
       enabled: true
       vl-threshold: 5
-      vl-decay-interval: 20
+      vl-decay-interval: 15
       punish-command: 'kick {player} §4Unfair Advantage'
 
   inventory:

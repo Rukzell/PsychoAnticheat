@@ -1,5 +1,7 @@
 package com.psycho.listeners;
 
+import com.psycho.Psycho;
+import com.psycho.hologram.Holograms;
 import com.psycho.ml.DataCollector;
 import com.psycho.player.PsychoPlayer;
 import org.bukkit.event.EventHandler;
@@ -26,12 +28,16 @@ public class ConnectionListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        Holograms h = Psycho.get().getNametagManager();
+        if (h != null) h.handlePlayerQuit(event.getPlayer());
         players.remove(event.getPlayer().getUniqueId());
         DataCollector.stopCollecting(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onKick(PlayerKickEvent event) {
+        Holograms h = Psycho.get().getNametagManager();
+        if (h != null) h.handlePlayerQuit(event.getPlayer());
         players.remove(event.getPlayer().getUniqueId());
     }
 

@@ -15,7 +15,11 @@ commands:
 permissions:
   psycho.admin:
     default: op
-  psycho.train:
+  psycho.alerts:
     default: op
-  psycho.collect:
+  psycho.command.train:
+    default: op
+  psycho.command.collect:
+    default: op
+  psycho.command.reload:
     default: op

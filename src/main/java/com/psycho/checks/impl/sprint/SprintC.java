@@ -6,11 +6,14 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
+import com.psycho.utils.buffer.VlBuffer;
 
 public class SprintC extends Check {
     public SprintC(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, true);
     }
+
+    private final VlBuffer buffer = new VlBuffer();
 
     @Override
     public void handle(PacketReceiveEvent event) {
@@ -21,9 +24,13 @@ public class SprintC extends Check {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
-                if (player.getBukkitPlayer().isHandRaised()) {
-                    flag();
-                    setback();
+                if (player.getBukkitPlayer().isHandRaised() || player.getBukkitPlayer().isSneaking()) {
+                    buffer.fail(1);
+                    if (buffer.getVl() > 1) {
+                        flag();
+                    }
+                } else {
+                    buffer.decay(0.5);
                 }
             }
         }

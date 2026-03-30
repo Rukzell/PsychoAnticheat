@@ -1,4 +1,4 @@
-package com.psycho.ml.gru;
+package com.psycho.ml;
 
 import java.io.*;
 

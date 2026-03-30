@@ -5,33 +5,34 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.psycho.Psycho;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
-import com.psycho.ml.gru.FeatureNormalizer;
-import com.psycho.ml.gru.GRU;
+import com.psycho.ml.FeatureNormalizer;
+import com.psycho.ml.models.GRU;
 import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.buffer.VlBuffer;
+import com.psycho.utils.math.MathUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
 
 public class AimML extends Check {
-
     private final Deque<double[]> recentData = new ArrayDeque<>();
     private final Deque<Double> probHistory = new ArrayDeque<>();
+    private final Deque<Double> avgHistory = new ArrayDeque<>();
     private final double[][] raw;
     private final double[][] normalized;
     private final VlBuffer buffer = new VlBuffer();
 
-    private final int seqLength = 60;
-    private final int probHistorySize = 20;
+    private final int seqLength = 80;
+    private final int probHistorySize = 30;
+    private final int avgHistorySize = 7;
 
     private final GRU gru;
     private final FeatureNormalizer normalizer;
 
     public AimML(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, true);
         raw = new double[seqLength][6];
         normalized = new double[seqLength][6];
 
@@ -60,8 +61,6 @@ public class AimML extends Check {
                 event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION) return;
 
         if (player.getTimeSinceLastHit() > 2000) {
-            recentData.clear();
-            probHistory.clear();
             return;
         }
 
@@ -85,26 +84,31 @@ public class AimML extends Check {
         double currentProb = gru.forward(normalized)[0];
 
         probHistory.add(currentProb);
-        if (probHistory.size() > probHistorySize) probHistory.removeFirst(); else return;
+        if (probHistory.size() > probHistorySize) probHistory.removeFirst();
+        else return;
 
-        double[] arr = probHistory.stream().mapToDouble(Double::doubleValue).toArray();
-        Arrays.sort(arr);
-        double median = arr[arr.length / 2];
-        if (arr.length % 2 == 0) {
-            median = (arr[arr.length / 2 - 1] + median) / 2.0;
-        }
+        double currentAvg = MathUtil.average(probHistory);
 
-        if (median > getCfg().probThreshold()) {
+        avgHistory.add(currentAvg);
+        if (avgHistory.size() > avgHistorySize) avgHistory.removeFirst();
+
+        if (currentAvg > getCfg().probThreshold()) {
             buffer.fail(1);
         } else {
             buffer.decay(getCfg().decay());
         }
 
         if (buffer.getVl() > getCfg().bufferThreshold()) {
-            flag(String.format("median=%.2f", median * 100));
+            flag();
+            buffer.setVl(0);
         }
+    }
 
-        probHistory.clear();
-        recentData.clear();
+    public Deque<Double> getProbHistory() {
+        return new ArrayDeque<>(probHistory);
+    }
+
+    public Deque<Double> getAvgHistory() {
+        return new ArrayDeque<>(avgHistory);
     }
 }

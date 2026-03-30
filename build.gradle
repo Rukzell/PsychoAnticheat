@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.psycho'
-version = '0.0.6'
+version = '0.0.7'
 
 repositories {
     mavenCentral()
@@ -14,7 +14,8 @@ repositories {
     }
     maven {
         name = "sonatype"
-        url = "https://oss.sonatype.org/content/groups/public/"}
+        url = "https://oss.sonatype.org/content/groups/public/"
+    }
     maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
     maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
 }

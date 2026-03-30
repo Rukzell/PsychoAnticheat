@@ -12,7 +12,7 @@ import java.util.Deque;
 
 public class KillAuraPattern extends Check {
     public KillAuraPattern(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, false);
     }
 
     @Override

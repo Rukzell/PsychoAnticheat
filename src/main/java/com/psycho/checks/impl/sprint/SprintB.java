@@ -7,24 +7,31 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
+import com.psycho.utils.buffer.VlBuffer;
 
 public class SprintB extends Check {
     public SprintB(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, true);
     }
+
+    private final VlBuffer buffer = new VlBuffer();
 
     @Override
     public void handle(PacketReceiveEvent event) {
-        if (player.getTimeSinceLastHit() > 2000 || player.getCps() > 3 || !getCfg().enabled() || player.getUser().getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+        if (player.getTimeSinceLastHit() > 2000 || player.getCps() > 3 || !getCfg().enabled()) {
             return;
         }
 
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING || wrapper.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
-                if (player.getSprintDelay() < 10_000_000) {
-                    flag();
-                    setback();
+                if (player.getSprintDelay() < 20_000_000) {
+                    buffer.fail(1);
+                    if (buffer.getVl() > 1) {
+                        flag();
+                    }
+                } else {
+                    buffer.decay(0.5);
                 }
             }
         }

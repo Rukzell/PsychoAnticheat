@@ -1,4 +1,4 @@
-package com.psycho.ml.gru;
+package com.psycho.ml.models;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -535,13 +535,13 @@ public class GRU {
 
         int total = tp + tn + fp + fn;
 
-        double accuracy = (double)(tp + tn) / total;
+        double accuracy = (double) (tp + tn) / total;
 
-        double recall = tp / (double)(tp + fn + 1e-8);
+        double recall = tp / (tp + fn + 1e-8);
 
-        double precision = tp / (double)(tp + fp + 1e-8);
+        double precision = tp / (tp + fp + 1e-8);
 
-        double fpr = fp / (double)(fp + tn + 1e-8);
+        double fpr = fp / (fp + tn + 1e-8);
 
         double f1 = 2 * precision * recall / (precision + recall + 1e-8);
 

@@ -19,6 +19,7 @@ public class PsychoPlayer {
     private final Map<String, Integer> violations = new HashMap<>();
     private final Map<String, Long> lastDecayTime = new HashMap<>();
     private final List<Check> checks;
+    private int hitCancelTicks;
 
     // hits
     private final Deque<Long> hitTimestamps;
@@ -73,6 +74,7 @@ public class PsychoPlayer {
         this.lastHit = 0;
         this.lastSafeLocation = bukkitPlayer.getLocation();
         this.checks = Psycho.get().getCheckService().createChecksForPlayer(this);
+        this.hitCancelTicks = 0;
     }
 
     public void registerRotation(float yaw, float pitch) {

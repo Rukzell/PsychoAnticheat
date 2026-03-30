@@ -8,12 +8,12 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.math.MathUtil;
 
-public class AimFrequency extends Check {
-    private final SampleBuffer yawBuffer = new SampleBuffer(128);
-    private final SampleBuffer pitchBuffer = new SampleBuffer(128);
+public class AimSignal extends Check {
+    private final SampleBuffer yawBuffer = new SampleBuffer(256);
+    private final SampleBuffer pitchBuffer = new SampleBuffer(256);
 
-    public AimFrequency(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+    public AimSignal(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg, true);
     }
 
     @Override
@@ -23,39 +23,49 @@ public class AimFrequency extends Check {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            yawBuffer.add(Math.abs(player.getDeltaYaw()));
-            pitchBuffer.add(Math.abs(player.getDeltaPitch()));
+            yawBuffer.add(player.getDeltaYaw());
+            pitchBuffer.add(player.getDeltaPitch());
 
             if (yawBuffer.isFull()) {
-                double[] psd = MathUtil.welchPSD(yawBuffer.getValues(), 64, 32);
+                double[] data = MathUtil.zNormalize(yawBuffer.getValues());
+                double[] psd = MathUtil.welchPSD(data, 128, 64);
 
                 double spectralFlatness = MathUtil.spectralFlatness(psd);
                 double highFreqRatio = MathUtil.highFreqRatio(psd);
+                double error = MathUtil.bestSineFit(data);
+
+                if (error < 0.52) {
+                    flag("BestSineFitXAxis");
+                }
 
                 if (spectralFlatness > 0.9) {
                     flag("SpectralFlatnessXAxis");
                 }
 
-                if (highFreqRatio > 0.4) {
+                if (highFreqRatio > 0.42) {
                     flag("HighFreqXAxis");
                 }
-                yawBuffer.getValues().clear();
             }
 
             if (pitchBuffer.isFull()) {
-                double[] psd = MathUtil.welchPSD(pitchBuffer.getValues(), 64, 32);
+                double[] data = MathUtil.zNormalize(pitchBuffer.getValues());
+                double[] psd = MathUtil.welchPSD(data, 128, 64);
 
                 double spectralFlatness = MathUtil.spectralFlatness(psd);
                 double highFreqRatio = MathUtil.highFreqRatio(psd);
+                double error = MathUtil.bestSineFit(data);
+
+                if (error < 0.52) {
+                    flag("BestSineFitYAxis");
+                }
 
                 if (spectralFlatness > 0.9) {
                     flag("SpectralFlatnessYAxis");
                 }
 
-                if (highFreqRatio > 0.4) {
+                if (highFreqRatio > 0.42) {
                     flag("HighFreqYAxis");
                 }
-                pitchBuffer.getValues().clear();
             }
         }
     }

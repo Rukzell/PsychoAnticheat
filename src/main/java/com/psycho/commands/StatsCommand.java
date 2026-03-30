@@ -1,16 +1,14 @@
 package com.psycho.commands;
 
 import com.psycho.Psycho;
+import com.psycho.checks.impl.ml.AimML;
 import com.psycho.player.PlayerStats;
 import com.psycho.player.PsychoPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StatsCommand implements SubCommand {
     private final Psycho plugin;
@@ -61,9 +59,37 @@ public class StatsCommand implements SubCommand {
             result.append(entry.getKey()).append("(x").append(entry.getValue()).append(")");
         }
 
-        sender.sendMessage("§fStats for §a" + targetPlayer.getName());
-        sender.sendMessage("§aFailed Checks: §c" + (!result.isEmpty() ? result : "None"));
-        sender.sendMessage("§aTotal: " + playerStats.getFailedChecks().size());
+        sender.sendMessage("§8§m                                        ");
+        sender.sendMessage("§aStats for §f" + targetPlayer.getName());
+        sender.sendMessage("§8§m                                        ");
+        sender.sendMessage("§aFailed Checks: §f" + (!result.isEmpty() ? result : "None"));
+        sender.sendMessage("§aTotal: §f" + playerStats.getFailedChecks().size());
+
+        AimML aimML = psychoPlayer.getCheck(AimML.class);
+        if (aimML != null) {
+            Deque<Double> history = aimML.getProbHistory();
+            double avg = history.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            double max = history.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+
+            String avgColor = avg > 0.8 ? "§c" : avg > 0.5 ? "§e" : "§a";
+
+            int totalBars = 29;
+            int filled = (int) (avg * totalBars);
+            StringBuilder bar = new StringBuilder("§7[");
+            for (int i = 0; i < totalBars; i++) {
+                if (i < filled) bar.append(avgColor).append("|");
+                else bar.append("§8|");
+            }
+            bar.append("§7]");
+
+            sender.sendMessage("§8§m                                        ");
+            sender.sendMessage("§aML avg prob: " + avgColor + String.format("%.2f", avg) + " §7" + bar);
+            sender.sendMessage("§aML max prob: §f" + String.format("%.2f", max));
+        } else {
+            sender.sendMessage("§bAimML: §7no data");
+        }
+
+        sender.sendMessage("§8§m                                        ");
     }
 
     @Override

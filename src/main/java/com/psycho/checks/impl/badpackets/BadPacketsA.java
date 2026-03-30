@@ -8,7 +8,7 @@ import com.psycho.player.PsychoPlayer;
 
 public class BadPacketsA extends Check {
     public BadPacketsA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, false);
     }
 
     @Override

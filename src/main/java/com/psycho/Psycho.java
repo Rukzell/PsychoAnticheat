@@ -3,13 +3,17 @@ package com.psycho;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.psycho.cfg.MessagesCfg;
+import com.psycho.hologram.Holograms;
 import com.psycho.listeners.CheckListener;
 import com.psycho.listeners.ConnectionListener;
+import com.psycho.player.PsychoPlayer;
 import com.psycho.services.CheckService;
 import com.psycho.services.CommandService;
 import com.psycho.services.ConfigService;
 import com.psycho.utils.Logger;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -22,6 +26,7 @@ public final class Psycho extends JavaPlugin {
     private ConfigService configService;
     private CommandService commandService;
     private CheckListener checkListener;
+    private Holograms holograms;
 
     public static Psycho get() {
         return instance;
@@ -34,6 +39,7 @@ public final class Psycho extends JavaPlugin {
         configService = new ConfigService(this);
         commandService = new CommandService(this);
         checkListener = new CheckListener();
+        holograms = new Holograms(this);
 
         checkService.initialize();
     }
@@ -59,6 +65,14 @@ public final class Psycho extends JavaPlugin {
         PacketEvents.getAPI().getEventManager().registerListener(checkListener, PacketListenerPriority.NORMAL);
 
         getServer().dispatchCommand(getServer().getConsoleSender(), "psycho reload");
+
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (connectionListener.getPlayer(online.getUniqueId()) == null) {
+                connectionListener.getPlayers().put(online.getUniqueId(), new PsychoPlayer(online));
+            }
+        }
+
+        holograms.start();
         Logger.log("Psycho successfully loaded");
     }
 
@@ -69,8 +83,17 @@ public final class Psycho extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        try {
+            if (holograms != null) holograms.stop();
+        } catch (Exception e) {
+            Logger.log("Error stopping holograms: " + e.getMessage());
+        }
         Logger.log("Psycho disabled");
-        PacketEvents.getAPI().terminate();
+        try {
+            PacketEvents.getAPI().terminate();
+        } catch (Exception e) {
+            Logger.log("Error terminating PacketEvents: " + e.getMessage());
+        }
     }
 
     public MessagesCfg getMessagesCfg() {
@@ -87,5 +110,9 @@ public final class Psycho extends JavaPlugin {
 
     public ConnectionListener getConnectionListener() {
         return connectionListener;
+    }
+
+    public Holograms getNametagManager() {
+        return holograms;
     }
 }

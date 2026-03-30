@@ -12,7 +12,7 @@ public class AimAxisLocking extends Check {
     private final VlBuffer bufferPitch = new VlBuffer();
 
     public AimAxisLocking(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, false);
     }
 
     @Override

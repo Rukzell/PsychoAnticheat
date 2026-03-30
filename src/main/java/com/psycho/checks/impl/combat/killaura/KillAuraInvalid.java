@@ -9,7 +9,7 @@ import com.psycho.player.PsychoPlayer;
 
 public class KillAuraInvalid extends Check {
     public KillAuraInvalid(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg);
+        super(player, cfgPath, cfg, false);
     }
 
     @Override

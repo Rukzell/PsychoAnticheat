@@ -24,7 +24,7 @@ public class ReloadCommand implements SubCommand {
 
     @Override
     public String getPermission() {
-        return "psycho.admin";
+        return "psycho.command.reload";
     }
 
     @Override

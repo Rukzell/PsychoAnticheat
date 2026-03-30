@@ -26,6 +26,10 @@ public class CheckListener implements PacketListener {
 
         if (psychoPlayer == null) return;
 
+        if (psychoPlayer.getHitCancelTicks() >= 0) {
+            psychoPlayer.setHitCancelTicks(psychoPlayer.getHitCancelTicks() - 1);
+        }
+
         psychoPlayer.updateSafeLocation();
 
         for (Check check : psychoPlayer.getChecks()) {
@@ -65,6 +69,11 @@ public class CheckListener implements PacketListener {
 
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
+
+            if (psychoPlayer.getHitCancelTicks() >= 0) {
+                event.setCancelled(true);
+            }
+
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 psychoPlayer.registerHit();
             }

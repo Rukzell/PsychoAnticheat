@@ -7,26 +7,26 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.Hex;
 import com.psycho.utils.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public abstract class Check {
+    protected final PsychoPlayer player;
     private final Psycho plugin;
     private final String name;
     private final CheckCfg cfg;
     private final String cfgPath;
-    protected final PsychoPlayer player;
-
     private long lastVlDecayTime;
+    private boolean cancelHits;
 
-    public Check(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+    public Check(PsychoPlayer player, String cfgPath, CheckCfg cfg, boolean cancelHits) {
         this.plugin = Psycho.get();
         this.name = getClass().getSimpleName();
         this.cfg = cfg;
         this.cfgPath = cfgPath;
         this.player = player;
         this.lastVlDecayTime = System.currentTimeMillis();
+        this.cancelHits = cancelHits;
     }
 
     public final void process(PacketReceiveEvent event) {
@@ -65,6 +65,7 @@ public abstract class Check {
 
         int vl = player.getViolation(name) + 1;
         player.addViolation(name, 1);
+        player.setHitCancelTicks(40);
 
         lastVlDecayTime = now;
 
@@ -79,22 +80,22 @@ public abstract class Check {
             Bukkit.getScheduler().runTask(plugin, () -> {
                         Bukkit.dispatchCommand(plugin.getServer().getConsoleSender(),
                                 cfg.punishCommand().replace("{player}", bukkitPlayer.getName()));
-                        Logger.log("§a✓ punished");
+                        Logger.log("§a✓ " + player.getBukkitPlayer().getName() + " punished");
                     }
             );
         }
 
-        String message = Hex.translateHexColors((plugin.getMessagesCfg().formatAlert(
+        String message = Hex.translateHexColors(plugin.getMessagesCfg().formatAlert(
                 player.getBukkitPlayer().getName(),
                 name,
                 vlBar,
                 vl,
                 cfg.vlThreshold(),
                 info
-        )));
+        ));
 
         for (Player online : Bukkit.getOnlinePlayers()) {
-            if (online.hasPermission("psycho.admin")) {
+            if (online.hasPermission("psycho.alerts")) {
                 online.sendMessage(message);
             }
         }
@@ -102,18 +103,11 @@ public abstract class Check {
 
     public void setback() {
         Player bukkitPlayer = player.getBukkitPlayer();
-        Location safe = player.getLastSafeLocation();
-
         if (bukkitPlayer == null || !bukkitPlayer.isOnline()) return;
 
         if (player.getLastSafeLocation() != null) {
             Bukkit.getScheduler().runTask(plugin, () -> {
-                bukkitPlayer.teleport(safe);
                 bukkitPlayer.setVelocity(new Vector(0, 0, 0));
-
-                Location modified = safe.clone();
-
-                bukkitPlayer.teleport(modified);
             });
         }
     }

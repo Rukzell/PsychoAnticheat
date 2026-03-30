@@ -1,8 +1,8 @@
 package com.psycho.commands;
 
 import com.psycho.Psycho;
-import com.psycho.ml.gru.FeatureNormalizer;
-import com.psycho.ml.gru.GRU;
+import com.psycho.ml.FeatureNormalizer;
+import com.psycho.ml.models.GRU;
 import org.bukkit.command.CommandSender;
 
 import java.io.BufferedReader;
@@ -102,7 +102,7 @@ public class TrainCommand implements SubCommand {
                     }
                 }
 
-                int seqLength = 60;
+                int seqLength = 80;
                 int sequenceCount = dataRows.size() / seqLength;
                 if (sequenceCount == 0) {
                     sender.sendMessage("§cNot enough data for a single sequence.");
