@@ -32,10 +32,6 @@ public class CheckListener implements PacketListener {
 
         psychoPlayer.updateSafeLocation();
 
-        for (Check check : psychoPlayer.getChecks()) {
-            check.process(event);
-        }
-
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             WrapperPlayClientPlayerPositionAndRotation wrapper =
                     new WrapperPlayClientPlayerPositionAndRotation(event);
@@ -70,7 +66,7 @@ public class CheckListener implements PacketListener {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
 
-            if (psychoPlayer.getHitCancelTicks() >= 0) {
+            if (psychoPlayer.getHitCancelTicks() > 0) {
                 event.setCancelled(true);
             }
 
@@ -95,8 +91,18 @@ public class CheckListener implements PacketListener {
             }
         }
 
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            psychoPlayer.setLastFlying(System.currentTimeMillis());
+        }
+
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             psychoPlayer.registerInventoryClick();
         }
+
+        for (Check check : psychoPlayer.getChecks()) {
+            check.process(event);
+        }
+
+        plugin.getPlayerTrackerService().trackSnapshot(psychoPlayer);
     }
 }

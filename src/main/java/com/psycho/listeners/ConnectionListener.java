@@ -4,33 +4,43 @@ import com.psycho.Psycho;
 import com.psycho.hologram.Holograms;
 import com.psycho.ml.DataCollector;
 import com.psycho.player.PsychoPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionListener implements Listener {
     private final Map<UUID, PsychoPlayer> players;
 
     public ConnectionListener() {
-        this.players = new HashMap<>();
+        this.players = new ConcurrentHashMap<>();
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        players.put(event.getPlayer().getUniqueId(), new PsychoPlayer(event.getPlayer()));
+        PsychoPlayer psychoPlayer = new PsychoPlayer(event.getPlayer());
+        players.put(event.getPlayer().getUniqueId(), psychoPlayer);
+        Psycho.get().getPlayerTrackerService().trackJoin(psychoPlayer);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         Holograms h = Psycho.get().getNametagManager();
         if (h != null) h.handlePlayerQuit(event.getPlayer());
-        players.remove(event.getPlayer().getUniqueId());
+        PsychoPlayer player = players.get(event.getPlayer().getUniqueId());
+        Psycho.get().getPlayerTrackerService().trackDisconnect(event.getPlayer(), player);
+
+        if (player != null) {
+            players.remove(player.getBukkitPlayer().getUniqueId());
+        }
+
         DataCollector.stopCollecting(event.getPlayer().getUniqueId());
     }
 
@@ -38,11 +48,31 @@ public class ConnectionListener implements Listener {
     public void onKick(PlayerKickEvent event) {
         Holograms h = Psycho.get().getNametagManager();
         if (h != null) h.handlePlayerQuit(event.getPlayer());
-        players.remove(event.getPlayer().getUniqueId());
+        PsychoPlayer removed = players.remove(event.getPlayer().getUniqueId());
+        Psycho.get().getPlayerTrackerService().trackDisconnect(event.getPlayer(), removed);
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        PsychoPlayer psychoPlayer = players.get(player.getUniqueId());
+        if (psychoPlayer == null) {
+            return;
+        }
+
+        psychoPlayer.registerDamage();
+        Psycho.get().getPlayerTrackerService().trackSnapshot(psychoPlayer);
     }
 
     public void removePlayer(UUID uuid) {
-        players.remove(uuid);
+        PsychoPlayer removed = players.remove(uuid);
+        Player bukkitPlayer = removed != null ? removed.getBukkitPlayer() : null;
+        if (bukkitPlayer != null) {
+            Psycho.get().getPlayerTrackerService().trackDisconnect(bukkitPlayer, removed);
+        }
     }
 
     public PsychoPlayer getPlayer(UUID uuid) {

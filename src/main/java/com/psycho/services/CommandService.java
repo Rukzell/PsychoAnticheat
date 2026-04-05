@@ -27,6 +27,9 @@ public class CommandService implements CommandExecutor, TabCompleter {
         register(new CollectCommand(plugin));
         register(new TrainCommand(plugin));
         register(new StatsCommand(plugin));
+        register(new AlertsCommand(plugin));
+        register(new SuspectsCommand(plugin));
+        register(new HelpCommand(plugin));
     }
 
     private void register(SubCommand command) {

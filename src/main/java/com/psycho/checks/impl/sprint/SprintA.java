@@ -10,11 +10,11 @@ import com.psycho.utils.buffer.VlBuffer;
 
 public class SprintA extends Check {
 
-    public SprintA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, true);
-    }
-
     private final VlBuffer buffer = new VlBuffer();
+
+    public SprintA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
+    }
 
     @Override
     public void handle(PacketReceiveEvent event) {
@@ -30,6 +30,7 @@ public class SprintA extends Check {
                     buffer.fail(1);
                     if (buffer.getVl() > 1) {
                         flag();
+                        setback();
                     }
                 } else {
                     buffer.decay(0.5);
@@ -41,6 +42,7 @@ public class SprintA extends Check {
                     buffer.fail(1);
                     if (buffer.getVl() > 1) {
                         flag();
+                        setback();
                     }
                 } else {
                     buffer.decay(0.5);

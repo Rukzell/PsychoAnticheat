@@ -9,11 +9,11 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.buffer.VlBuffer;
 
 public class SprintC extends Check {
-    public SprintC(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, true);
-    }
-
     private final VlBuffer buffer = new VlBuffer();
+
+    public SprintC(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
+    }
 
     @Override
     public void handle(PacketReceiveEvent event) {
@@ -24,10 +24,11 @@ public class SprintC extends Check {
         if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
             WrapperPlayClientEntityAction wrapper = new WrapperPlayClientEntityAction(event);
             if (wrapper.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
-                if (player.getBukkitPlayer().isHandRaised() || player.getBukkitPlayer().isSneaking()) {
+                if (player.getBukkitPlayer().isHandRaised() || player.getBukkitPlayer().isSneaking() || player.getBukkitPlayer().getFoodLevel() < 6) {
                     buffer.fail(1);
                     if (buffer.getVl() > 1) {
                         flag();
+                        setback();
                     }
                 } else {
                     buffer.decay(0.5);

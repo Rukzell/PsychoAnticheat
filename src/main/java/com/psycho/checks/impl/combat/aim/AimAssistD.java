@@ -8,12 +8,12 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.math.MathUtil;
 
-public class AimDynamics extends Check {
+public class AimAssistD extends Check {
     private final SampleBuffer yawBuffer = new SampleBuffer(60);
     private final SampleBuffer pitchBuffer = new SampleBuffer(60);
 
-    public AimDynamics(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, true);
+    public AimAssistD(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
@@ -33,7 +33,7 @@ public class AimDynamics extends Check {
                 double jerkAsymmetry = stddevYaw - stddevPitch;
 
                 if (jerkAsymmetry > 4 && avgYaw < 2) {
-                    flag("JerkAsymmetry");
+                    flag("jerkasymmetry=" + jerkAsymmetry + ", avg=" + avgYaw);
                 }
 
                 yawBuffer.getValues().clear();

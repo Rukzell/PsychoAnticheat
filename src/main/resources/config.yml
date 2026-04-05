@@ -3,79 +3,116 @@ messages:
   no-permission: '§cYou do not have permission to do this!'
   alert: '{prefix} #ffe1c9{player} §7› #ff4500{check} §8| {vlBar} §8| #ffe1c9{vl}§8/#ffe1c9{maxVl} §8({info}§8)'
 
+menu:
+  suspects:
+    title: '#ff4500Psycho &8> &7Suspects'
+    suspects-punish-command: 'ban {player} #ff4500Banned by Psycho'
+    suspects-player-only: '§cOnly players can use this command.'
+    suspects-teleport: '{prefix} #ffe1c9Teleported to #ff4500{player}'
+    suspects-spectate: '{prefix} #ffe1c9Now spectating #ff4500{player}'
+    suspects-player-offline: '{prefix} §cThat player is no longer online.'
+    suspects-ban-broadcast: '{prefix} #ffe1c9{admin} #ff4500banned #ffe1c9{player} #ff4500via suspects menu.' # only for admins
+
 checks:
   aimassist:
-    anglelocking:
+    ml: # GRU
+      enabled: true
+      vl-threshold: 20
+      vl-decay-interval: 15
+      punish-command: 'kick {player} §4Unfair Advantage'
+      prob-threshold: 0.9
+      buffer-threshold: 10
+      decay: 3 # buffer decay
+    a: # axis locking
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    consistency:
+    b: # nothing
       enabled: false
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    distribution:
+    c: # nothing
       enabled: false
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    spike:
+    d: # jerk
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    syntheticnoise:
+    e: # spectral flatness, high freq. ratio
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    dynamics:
+    f: # spike
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    signal:
+    g: # synthetic
       enabled: true
       vl-threshold: 10
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    ml:
-      enabled: true
-      vl-threshold: 10
-      vl-decay-interval: 60
-      punish-command: 'kick {player} §4Unfair Advantage'
-      prob-threshold: 0.5
-      buffer-threshold: 1
-      decay: 1 # buffer decay
 
   badpackets:
-    a:
+    a: # pitch > 90
       enabled: true
       vl-threshold: 1
       vl-decay-interval: 0
       punish-command: 'kick {player} §4Unfair Advantage'
+    b: # interaction with yourself
+      enabled: true
+      vl-threshold: 5
+      vl-decay-interval: 60
+      punish-command: 'kick {player} §4Unfair Advantage'
+    c: # no swing
+      enabled: true
+      vl-threshold: 5
+      vl-decay-interval: 60
+      punish-command: 'kick {player} §4Unfair Advantage'
 
   killaura:
-    invalid:
+    a: # wallhit
+      enabled: true
+      vl-threshold: 5
+      vl-decay-interval: 15
+      punish-command: 'kick {player} §4Unfair Advantage'
+    b: # invalid
       enabled: true
       vl-threshold: 3
       vl-decay-interval: 60
       punish-command: 'kick {player} §4Unfair Advantage'
-    snap:
+    c: # autoclicker
       enabled: true
       vl-threshold: 10
+      vl-decay-interval: 120
+      punish-command: 'kick {player} §4Unfair Advantage'
+    d: # snap
+      enabled: true
+      vl-threshold: 10
+      vl-decay-interval: 60
+      punish-command: 'kick {player} §4Unfair Advantage'
+    e: # post
+      enabled: true
+      vl-threshold: 10
+      vl-decay-interval: 60
+      punish-command: 'kick {player} §4Unfair Advantage'
+    f: # snap
+      enabled: true
+      vl-threshold: 10
+      vl-decay-interval: 60
+      punish-command: 'kick {player} §4Unfair Advantage'
+
+  movement:
+    noslow: # test check
+      enabled: true
+      vl-threshold: 20
       vl-decay-interval: 30
-      punish-command: 'kick {player} §4Unfair Advantage'
-    pattern:
-      enabled: true
-      vl-threshold: 10
-      vl-decay-interval: 45
-      punish-command: 'kick {player} §4Unfair Advantage'
-    wallhit:
-      enabled: true
-      vl-threshold: 5
-      vl-decay-interval: 15
       punish-command: 'kick {player} §4Unfair Advantage'
 
   sprint:
@@ -96,13 +133,13 @@ checks:
       punish-command: 'kick {player} §4Unfair Advantage'
 
   inventory:
-    a:
-      enabled: true
+    a: # false positive check
+      enabled: false
       vl-threshold: 5
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'
-    b:
-      enabled: true
+    b: # false positive check
+      enabled: false
       vl-threshold: 5
       vl-decay-interval: 30
       punish-command: 'kick {player} §4Unfair Advantage'

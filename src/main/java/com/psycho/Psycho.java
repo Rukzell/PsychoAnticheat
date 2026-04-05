@@ -10,6 +10,7 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.services.CheckService;
 import com.psycho.services.CommandService;
 import com.psycho.services.ConfigService;
+import com.psycho.services.PlayerTrackerService;
 import com.psycho.utils.Logger;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.Bukkit;
@@ -25,6 +26,7 @@ public final class Psycho extends JavaPlugin {
     private CheckService checkService;
     private ConfigService configService;
     private CommandService commandService;
+    private PlayerTrackerService playerTrackerService;
     private CheckListener checkListener;
     private Holograms holograms;
 
@@ -38,6 +40,7 @@ public final class Psycho extends JavaPlugin {
         checkService = new CheckService();
         configService = new ConfigService(this);
         commandService = new CommandService(this);
+        playerTrackerService = new PlayerTrackerService();
         checkListener = new CheckListener();
         holograms = new Holograms(this);
 
@@ -49,7 +52,7 @@ public final class Psycho extends JavaPlugin {
         create();
         saveDefaultConfig();
 
-        new File(getDataFolder(), "ml").mkdirs();
+        ensureMlResources();
 
         PacketEvents.getAPI().init();
         PacketEvents.getAPI().load();
@@ -70,10 +73,37 @@ public final class Psycho extends JavaPlugin {
             if (connectionListener.getPlayer(online.getUniqueId()) == null) {
                 connectionListener.getPlayers().put(online.getUniqueId(), new PsychoPlayer(online));
             }
+            playerTrackerService.trackJoin(connectionListener.getPlayer(online.getUniqueId()));
         }
 
         holograms.start();
         Logger.log("Psycho successfully loaded");
+    }
+
+    private void ensureMlResources() {
+        File mlDir = new File(getDataFolder(), "ml");
+        if (!mlDir.exists() && !mlDir.mkdirs()) {
+            Logger.log("Failed to create ml directory at " + mlDir.getAbsolutePath());
+            return;
+        }
+
+        ensureMlResource("ml/model.bin");
+        ensureMlResource("ml/normalizer.bin");
+    }
+
+    private void ensureMlResource(String resourcePath) {
+        File targetFile = new File(getDataFolder(), resourcePath);
+        if (targetFile.exists()) {
+            return;
+        }
+
+        if (getResource(resourcePath) == null) {
+            Logger.log("Missing bundled ML resource: " + resourcePath);
+            return;
+        }
+
+        saveResource(resourcePath, false);
+        Logger.log("Installed ML resource: " + resourcePath);
     }
 
     @Override
@@ -114,5 +144,9 @@ public final class Psycho extends JavaPlugin {
 
     public Holograms getNametagManager() {
         return holograms;
+    }
+
+    public PlayerTrackerService getPlayerTrackerService() {
+        return playerTrackerService;
     }
 }

@@ -10,15 +10,14 @@ import com.psycho.utils.buffer.VlBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AimSpike extends Check {
+public class AimAssistF extends Check {
     private final List<Float> deltaYaws = new ArrayList<>();
     private final List<Float> deltaPitches = new ArrayList<>();
-
-    public AimSpike(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, false);
-    }
-
     private final VlBuffer buffer = new VlBuffer();
+
+    public AimAssistF(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
+    }
 
     @Override
     public void handle(PacketReceiveEvent event) {
@@ -33,7 +32,7 @@ public class AimSpike extends Check {
                 if (deltaYaws.get(0) < 0.15 && deltaYaws.get(1) > 20 && deltaYaws.get(2) < 0.15) {
                     buffer.fail(1);
                     if (buffer.getVl() > 1) {
-                        flag("SpikeXAxis");
+                        flag("spike(x)=" + deltaYaws.get(1));
                     }
                 } else {
                     buffer.decay(0.05);
@@ -45,7 +44,7 @@ public class AimSpike extends Check {
                 if (deltaPitches.get(0) < 0.15 && deltaPitches.get(1) > 20 && deltaPitches.get(2) < 0.15) {
                     buffer.fail(1);
                     if (buffer.getVl() > 1) {
-                        flag("SpikeYAxis");
+                        flag("spike(y)=" + deltaPitches.get(1));
                     }
                 } else {
                     buffer.decay(0.05);

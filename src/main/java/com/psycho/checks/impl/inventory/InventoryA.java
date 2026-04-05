@@ -8,7 +8,7 @@ import com.psycho.player.PsychoPlayer;
 
 public class InventoryA extends Check {
     public InventoryA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, false);
+        super(player, cfgPath, cfg);
     }
 
     @Override
@@ -18,8 +18,7 @@ public class InventoryA extends Check {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW || event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
-            if (player.getBukkitPlayer().isSprinting()) {
-                event.setCancelled(true);
+            if (player.isSprinting()) {
                 flag();
             }
         }

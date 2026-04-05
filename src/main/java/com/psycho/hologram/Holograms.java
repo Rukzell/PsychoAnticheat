@@ -13,7 +13,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEn
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
 import com.psycho.Psycho;
-import com.psycho.checks.impl.ml.AimML;
+import com.psycho.checks.Check;
+import com.psycho.checks.impl.combat.aim.ml.AimAssistML;
 import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.Hex;
 import org.bukkit.Bukkit;
@@ -139,10 +140,10 @@ public class Holograms extends PacketListenerAbstract implements Listener {
         PsychoPlayer psychoPlayer = plugin.getConnectionListener().getPlayer(target.getUniqueId());
         if (psychoPlayer == null) return;
 
-        AimML aimML = psychoPlayer.getCheck(AimML.class);
-        if (aimML == null) return;
+        AimAssistML aimAssistML = psychoPlayer.getCheck(AimAssistML.class);
+        if (aimAssistML == null) return;
 
-        String rawText = buildDisplayText(aimML.getAvgHistory());
+        String rawText = buildDisplayText(aimAssistML.getAvgHistory());
 
         int entityId = armorStandIds.computeIfAbsent(
                 target.getUniqueId(),
@@ -171,19 +172,11 @@ public class Holograms extends PacketListenerAbstract implements Listener {
     }
 
     private String buildDisplayText(Deque<Double> avgHistory) {
-        Double[] slots = new Double[7];
-        int i = 0;
-        for (Double v : avgHistory) slots[i++] = v;
-
-        StringBuilder sb = new StringBuilder();
-        for (int s = 0; s < 7; s++) {
-            if (slots[s] == null) {
-                sb.append("&8- ");
-            } else {
-                sb.append(colorFor(slots[s])).append(String.format("%.2f", slots[s])).append(" ");
-            }
+        Double latestAvg = avgHistory.peekLast();
+        if (latestAvg == null) {
+            return Check.buildBar(0.0);
         }
-        return sb.toString().trim();
+        return Check.buildBar(latestAvg);
     }
 
     private void updateFor(Player target, Player viewer, int entityId,
@@ -345,10 +338,4 @@ public class Holograms extends PacketListenerAbstract implements Listener {
         return metadata;
     }
 
-    private String colorFor(double val) {
-        if (val < 0.5) return "&a";
-        if (val < 0.7) return "&e";
-        if (val < 0.9) return "&c";
-        return "&4&l";
-    }
 }

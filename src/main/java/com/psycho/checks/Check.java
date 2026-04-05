@@ -8,7 +8,6 @@ import com.psycho.utils.Hex;
 import com.psycho.utils.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 public abstract class Check {
     protected final PsychoPlayer player;
@@ -17,16 +16,41 @@ public abstract class Check {
     private final CheckCfg cfg;
     private final String cfgPath;
     private long lastVlDecayTime;
-    private boolean cancelHits;
+    private long lastFlagTime;
 
-    public Check(PsychoPlayer player, String cfgPath, CheckCfg cfg, boolean cancelHits) {
+    public Check(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
         this.plugin = Psycho.get();
         this.name = getClass().getSimpleName();
         this.cfg = cfg;
         this.cfgPath = cfgPath;
         this.player = player;
         this.lastVlDecayTime = System.currentTimeMillis();
-        this.cancelHits = cancelHits;
+    }
+
+    public static String buildBar(int value, int maxValue) {
+        if (maxValue <= 0) {
+            return buildBar(0.0);
+        }
+        return buildBar((double) value / maxValue);
+    }
+
+    public static String buildBar(double progress) {
+        int totalBars = 20;
+        double clamped = Math.max(0.0, Math.min(progress, 1.0));
+        int filled = Math.min((int) Math.round(clamped * totalBars), totalBars);
+
+        StringBuilder bar = new StringBuilder("§7[");
+        for (int i = 0; i < totalBars; i++) {
+            if (i < filled) {
+                if (i < totalBars * 0.4) bar.append("§a|");
+                else if (i < totalBars * 0.7) bar.append("§e|");
+                else bar.append("§c|");
+            } else {
+                bar.append("§8|");
+            }
+        }
+        bar.append("§7]");
+        return bar.toString();
     }
 
     public final void process(PacketReceiveEvent event) {
@@ -60,18 +84,17 @@ public abstract class Check {
 
     public void flag(String info) {
         long now = System.currentTimeMillis();
-        if (now - player.getLastFlagTime() < 1000) return;
-        player.setLastFlagTime(now);
+        if (now - lastFlagTime < 500) return;
+        lastFlagTime = now;
 
         int vl = player.getViolation(name) + 1;
         player.addViolation(name, 1);
-        player.setHitCancelTicks(40);
 
         lastVlDecayTime = now;
 
         player.getStats().getFailedChecks().add(name);
 
-        String vlBar = buildVlBar(vl, cfg.vlThreshold());
+        String vlBar = buildBar(vl, cfg.vlThreshold());
 
         if (vl >= cfg.vlThreshold()) {
             Logger.log("executing punishment");
@@ -95,7 +118,13 @@ public abstract class Check {
         ));
 
         for (Player online : Bukkit.getOnlinePlayers()) {
-            if (online.hasPermission("psycho.alerts")) {
+            if (!online.hasPermission("psycho.alerts")) continue;
+
+            PsychoPlayer psychoOnline = plugin.getConnectionListener().getPlayer(online.getUniqueId());
+
+            if (psychoOnline == null) continue;
+
+            if (psychoOnline.isSendAlerts()) {
                 online.sendMessage(message);
             }
         }
@@ -107,27 +136,13 @@ public abstract class Check {
 
         if (player.getLastSafeLocation() != null) {
             Bukkit.getScheduler().runTask(plugin, () -> {
-                bukkitPlayer.setVelocity(new Vector(0, 0, 0));
+                bukkitPlayer.teleport(player.getLastSafeLocation());
             });
         }
     }
 
-    private String buildVlBar(int vl, int maxVl) {
-        int totalBars = 10;
-        int filled = Math.min((int) Math.round((double) vl / maxVl * totalBars), totalBars);
-
-        StringBuilder bar = new StringBuilder("§7[");
-        for (int i = 0; i < totalBars; i++) {
-            if (i < filled) {
-                if (i < totalBars * 0.4) bar.append("§a|");
-                else if (i < totalBars * 0.7) bar.append("§e|");
-                else bar.append("§c|");
-            } else {
-                bar.append("§8|");
-            }
-        }
-        bar.append("§7]");
-        return bar.toString();
+    public void cancelHits() {
+        player.setHitCancelTicks(40);
     }
 
     public String getName() {

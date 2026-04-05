@@ -8,12 +8,12 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.SampleBuffer;
 import com.psycho.utils.math.MathUtil;
 
-public class AimSignal extends Check {
+public class AimAssistE extends Check {
     private final SampleBuffer yawBuffer = new SampleBuffer(256);
     private final SampleBuffer pitchBuffer = new SampleBuffer(256);
 
-    public AimSignal(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, true);
+    public AimAssistE(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
@@ -32,18 +32,15 @@ public class AimSignal extends Check {
 
                 double spectralFlatness = MathUtil.spectralFlatness(psd);
                 double highFreqRatio = MathUtil.highFreqRatio(psd);
-                double error = MathUtil.bestSineFit(data);
 
-                if (error < 0.52) {
-                    flag("BestSineFitXAxis");
+                if (spectralFlatness > 0.97) {
+                    flag("spectralflatness(x)=" + spectralFlatness);
+                    cancelHits();
                 }
 
-                if (spectralFlatness > 0.9) {
-                    flag("SpectralFlatnessXAxis");
-                }
-
-                if (highFreqRatio > 0.42) {
-                    flag("HighFreqXAxis");
+                if (highFreqRatio > 0.47) {
+                    flag("highfrequency(x)=" + highFreqRatio);
+                    cancelHits();
                 }
             }
 
@@ -53,18 +50,14 @@ public class AimSignal extends Check {
 
                 double spectralFlatness = MathUtil.spectralFlatness(psd);
                 double highFreqRatio = MathUtil.highFreqRatio(psd);
-                double error = MathUtil.bestSineFit(data);
 
-                if (error < 0.52) {
-                    flag("BestSineFitYAxis");
+                if (spectralFlatness > 0.97) {
+                    flag("spectralflatness(y)=" + spectralFlatness);
                 }
 
-                if (spectralFlatness > 0.9) {
-                    flag("SpectralFlatnessYAxis");
-                }
-
-                if (highFreqRatio > 0.42) {
-                    flag("HighFreqYAxis");
+                if (highFreqRatio > 0.47) {
+                    flag("highfrequency(y)=" + highFreqRatio);
+                    cancelHits();
                 }
             }
         }

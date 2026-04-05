@@ -4,13 +4,10 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
-import com.psycho.utils.SampleBuffer;
-import com.psycho.utils.buffer.VlBuffer;
-import com.psycho.utils.math.MathUtil;
 
-public class AimDistribution extends Check {
-    public AimDistribution(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, false);
+public class AimAssistB extends Check {
+    public AimAssistB(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override

@@ -7,12 +7,12 @@ import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
 import com.psycho.utils.buffer.VlBuffer;
 
-public class AimAxisLocking extends Check {
+public class AimAssistA extends Check {
     private final VlBuffer bufferYaw = new VlBuffer();
     private final VlBuffer bufferPitch = new VlBuffer();
 
-    public AimAxisLocking(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, false);
+    public AimAssistA(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override

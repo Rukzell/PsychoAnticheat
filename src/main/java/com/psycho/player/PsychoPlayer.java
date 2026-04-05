@@ -5,6 +5,8 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.psycho.Psycho;
 import com.psycho.checks.Check;
 import com.psycho.ml.DataCollector;
+import com.psycho.utils.BoundingBox;
+import com.psycho.utils.math.MathUtil;
 import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -19,13 +21,19 @@ public class PsychoPlayer {
     private final Map<String, Integer> violations = new HashMap<>();
     private final Map<String, Long> lastDecayTime = new HashMap<>();
     private final List<Check> checks;
-    private int hitCancelTicks;
-
+    private final List<Integer> sensitivitySamples = new ArrayList<>(40);
     // hits
     private final Deque<Long> hitTimestamps;
     private final Deque<Long> hitDelays;
-    private long lastFlagTime;
+    private int hitCancelTicks;
+    private double finalSensitivity;
+    private double sensitivity;
+    private double mcpSensitivity;
+    // hitbox
+    private BoundingBox boundingBox;
+    private BoundingBox lastBoundingBox;
     private long lastHit;
+    private long lastDamageTime;
 
     // rotation
     private float yaw;
@@ -36,17 +44,38 @@ public class PsychoPlayer {
     private float deltaPitch;
     private float lastDeltaYaw;
     private float lastDeltaPitch;
+    private float lastLastDeltaYaw;
+    private float lastLastDeltaPitch;
     private float accelYaw;
     private float accelPitch;
     private float lastAccelYaw;
     private float lastAccelPitch;
+    private float lastLastAccelYaw;
+    private float lastLastAccelPitch;
     private float jerkYaw;
     private float jerkPitch;
+    private float lastJerkYaw;
+    private float lastJerkPitch;
+    private float lastLastJerkYaw;
+    private float lastLastJerkPitch;
+    private float lastDeltaXRot;
+    private float lastDeltaYRot;
+
+    // sensitivity
+    private float sensitivityX;
+    private float sensitivityY;
+    private float lastSensitivityX;
+    private float lastSensitivityY;
+    private float deltaSensitivityX;
+    private float deltaSensitivityY;
 
     // position
     private double x, y, z;
     private double lastX, lastY, lastZ;
     private double deltaX, deltaY, deltaZ;
+
+    // flying
+    private long lastFlying;
 
     // ml
     private double avg;
@@ -75,6 +104,15 @@ public class PsychoPlayer {
         this.lastSafeLocation = bukkitPlayer.getLocation();
         this.checks = Psycho.get().getCheckService().createChecksForPlayer(this);
         this.hitCancelTicks = 0;
+        this.sendAlerts = true;
+        this.boundingBox = new BoundingBox(
+                bukkitPlayer.getLocation().getX(),
+                bukkitPlayer.getLocation().getY(),
+                bukkitPlayer.getLocation().getZ(),
+                0.6,
+                1.8
+        );
+        this.lastBoundingBox = boundingBox;
     }
 
     public void registerRotation(float yaw, float pitch) {
@@ -86,19 +124,49 @@ public class PsychoPlayer {
         this.lastPitch = pitch;
         this.yaw = yaw;
         this.pitch = pitch;
+        this.lastLastAccelYaw = this.lastAccelYaw;
+        this.lastLastAccelPitch = this.lastAccelPitch;
         this.lastAccelYaw = this.accelYaw;
         this.lastAccelPitch = this.accelPitch;
         this.accelYaw = deltaYaw - lastDeltaYaw;
         this.accelPitch = deltaPitch - lastDeltaPitch;
+        this.lastLastJerkYaw = this.lastJerkYaw;
+        this.lastLastJerkPitch = this.lastJerkPitch;
+        this.lastJerkYaw = this.jerkYaw;
+        this.lastJerkPitch = this.jerkPitch;
         this.jerkYaw = accelYaw - lastAccelYaw;
         this.jerkPitch = accelPitch - lastAccelPitch;
 
-        this.sendAlerts = true;
+        // sens
+        if (Math.abs(deltaPitch) == 0 || Math.abs(lastDeltaPitch) == 0) return;
+
+        double gcd = MathUtil.gcd(deltaPitch, lastDeltaPitch);
+        double sensitivityModifier = Math.cbrt(0.8333 * gcd);
+        double sensitivityStepTwo = 1.666 * sensitivityModifier - 0.3333;
+        this.finalSensitivity = sensitivityStepTwo * 200.0;
+
+        sensitivitySamples.add((int) finalSensitivity);
+
+        if (sensitivitySamples.size() == 40) {
+            this.sensitivity = MathUtil.getMode(sensitivitySamples);
+            if (hasValidSensitivity()) {
+                this.mcpSensitivity = sensitivity;
+            }
+            sensitivitySamples.clear();
+        }
 
         DataCollector.collect(this);
     }
 
     public void registerPosition(double x, double y, double z) {
+        this.lastBoundingBox = new BoundingBox(
+                this.x,
+                this.y,
+                this.z,
+                0.6,
+                1.8
+        );
+
         this.deltaX = x - this.lastX;
         this.deltaY = y - this.lastY;
         this.deltaZ = z - this.lastZ;
@@ -108,6 +176,12 @@ public class PsychoPlayer {
         this.x = x;
         this.y = y;
         this.z = z;
+
+        if (this.boundingBox == null) {
+            this.boundingBox = new BoundingBox(x, y, z, 0.6, 1.8);
+        } else {
+            this.boundingBox.update(x, y, z, 0.6, 1.8);
+        }
     }
 
     public void registerHit() {
@@ -126,6 +200,10 @@ public class PsychoPlayer {
         lastHit = now;
 
         purgeOldHits();
+    }
+
+    public void registerDamage() {
+        lastDamageTime = System.currentTimeMillis();
     }
 
     public void registerInventoryClick() {
@@ -212,6 +290,38 @@ public class PsychoPlayer {
 
     public void setLastDecayTime(String check, long time) {
         lastDecayTime.put(check, time);
+    }
+
+    public BoundingBox getMovementBox() {
+        double minX = Math.min(boundingBox.getMinX(), lastBoundingBox.getMinX());
+        double minY = Math.min(boundingBox.getMinY(), lastBoundingBox.getMinY());
+        double minZ = Math.min(boundingBox.getMinZ(), lastBoundingBox.getMinZ());
+
+        double maxX = Math.max(boundingBox.getMaxX(), lastBoundingBox.getMaxX());
+        double maxY = Math.max(boundingBox.getMaxY(), lastBoundingBox.getMaxY());
+        double maxZ = Math.max(boundingBox.getMaxZ(), lastBoundingBox.getMaxZ());
+
+        BoundingBox box = new BoundingBox(0, 0, 0, 0, 0);
+        box.setMinX(minX);
+        box.setMinY(minY);
+        box.setMinZ(minZ);
+        box.setMaxX(maxX);
+        box.setMaxY(maxY);
+        box.setMaxZ(maxZ);
+
+        return box;
+    }
+
+    public BoundingBox getInterpolatedBox(double t) {
+        double ix = lastX + (x - lastX) * t;
+        double iy = lastY + (y - lastY) * t;
+        double iz = lastZ + (z - lastZ) * t;
+
+        return new BoundingBox(ix, iy, iz, 0.6, 1.8);
+    }
+
+    public boolean hasValidSensitivity() {
+        return mcpSensitivity > 0 && mcpSensitivity <= 200;
     }
 
     @SuppressWarnings("unchecked")

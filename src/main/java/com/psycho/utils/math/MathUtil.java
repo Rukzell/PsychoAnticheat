@@ -465,4 +465,42 @@ public class MathUtil {
         double weight = index - lower;
         return arr[lower] * (1.0 - weight) + arr[upper] * weight;
     }
+
+    public static double hypot(double x, double z) {
+        x = Math.abs(x);
+        z = Math.abs(z);
+
+        if (x < z) {
+            double temp = x;
+            x = z;
+            z = temp;
+        }
+
+        if (x == 0.0) {
+            return 0.0;
+        }
+
+        double r = z / x;
+        return x * Math.sqrt(1 + r * r);
+    }
+
+    public static float gcd(float a, float b) {
+        a = Math.abs(a);
+        b = Math.abs(b);
+        while (b > 1e-4f) {
+            float t = b;
+            b = a % b;
+            a = t;
+        }
+        return a;
+    }
+
+    public static int getMode(List<Integer> samples) {
+        Map<Integer, Integer> freq = new HashMap<>();
+        for (int s : samples) freq.merge(s, 1, Integer::sum);
+        return freq.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(0);
+    }
 }

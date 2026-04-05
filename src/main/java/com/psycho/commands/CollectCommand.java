@@ -56,8 +56,12 @@ public class CollectCommand implements SubCommand {
                 sender.sendMessage("§cPlayer is already participating in data collection.");
             }
         } else if (type.equals("cheat")) {
-            DataCollector.startCollecting(target.getUniqueId(), 1);
-            sender.sendMessage("§aStarted collecting cheat data for " + target.getName());
+            if (!DataCollector.isCollecting(target.getUniqueId())) {
+                DataCollector.startCollecting(target.getUniqueId(), 1);
+                sender.sendMessage("§aStarted collecting cheat data for " + target.getName());
+            } else {
+                sender.sendMessage("§cPlayer is already participating in data collection.");
+            }
         } else {
             sender.sendMessage("§cInvalid type. Use <legit|cheat|stop>");
         }

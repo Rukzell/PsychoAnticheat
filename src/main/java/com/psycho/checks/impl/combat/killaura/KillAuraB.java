@@ -6,13 +6,13 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
-import com.psycho.utils.math.MathUtil;
+import com.psycho.utils.buffer.VlBuffer;
 
-import java.util.Deque;
+public class KillAuraB extends Check {
+    private final VlBuffer buffer = new VlBuffer();
 
-public class KillAuraPattern extends Check {
-    public KillAuraPattern(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, false);
+    public KillAuraB(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
@@ -24,10 +24,14 @@ public class KillAuraPattern extends Check {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity wrapper = new WrapperPlayClientInteractEntity(event);
             if (wrapper.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                Deque<Long> hitDelays = player.getHitDelays();
-                if (hitDelays.size() == 20 && MathUtil.stddev(hitDelays) <= 1.1) {
-                    flag();
-                    setback();
+                if (player.getBukkitPlayer().isHandRaised()) {
+                    buffer.fail(1);
+                    if (buffer.getVl() > 1) {
+                        setback();
+                        flag();
+                    }
+                } else {
+                    buffer.decay(0.25);
                 }
             }
         }

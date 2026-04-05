@@ -49,6 +49,10 @@ public class DataCollector {
         return collectingTarget.containsKey(uuid);
     }
 
+    public static Integer getCollectingLabel(UUID uuid) {
+        return collectingTarget.get(uuid);
+    }
+
     public static void collect(PsychoPlayer player) {
         if (!isCollecting(player.getBukkitPlayer().getUniqueId())) return;
 

@@ -1,7 +1,7 @@
 package com.psycho.commands;
 
 import com.psycho.Psycho;
-import com.psycho.checks.impl.ml.AimML;
+import com.psycho.checks.impl.combat.aim.ml.AimAssistML;
 import com.psycho.player.PlayerStats;
 import com.psycho.player.PsychoPlayer;
 import org.bukkit.Bukkit;
@@ -65,9 +65,9 @@ public class StatsCommand implements SubCommand {
         sender.sendMessage("§aFailed Checks: §f" + (!result.isEmpty() ? result : "None"));
         sender.sendMessage("§aTotal: §f" + playerStats.getFailedChecks().size());
 
-        AimML aimML = psychoPlayer.getCheck(AimML.class);
-        if (aimML != null) {
-            Deque<Double> history = aimML.getProbHistory();
+        AimAssistML aimAssistML = psychoPlayer.getCheck(AimAssistML.class);
+        if (aimAssistML != null) {
+            Deque<Double> history = aimAssistML.getAvgHistory();
             double avg = history.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
             double max = history.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
 

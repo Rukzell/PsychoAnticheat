@@ -7,9 +7,9 @@ import com.psycho.cfg.CheckCfg;
 import com.psycho.checks.Check;
 import com.psycho.player.PsychoPlayer;
 
-public class KillAuraSnap extends Check {
-    public KillAuraSnap(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
-        super(player, cfgPath, cfg, false);
+public class KillAuraD extends Check {
+    public KillAuraD(PsychoPlayer player, String cfgPath, CheckCfg cfg) {
+        super(player, cfgPath, cfg);
     }
 
     @Override
@@ -30,7 +30,9 @@ public class KillAuraSnap extends Check {
 
                 boolean snap1 = lastDeltaYawAbs < 1.5 && deltaYawAbs > 60;
                 boolean snap2 = lastDeltaPitchAbs < 1.5 && deltaPitchAbs > 80;
-                boolean snap3 = lastDeltaYaw < 0 && deltaYaw > 50 || lastDeltaYaw > 0 && deltaYaw < -50;
+                boolean snap3 = lastDeltaYaw < -2 && deltaYaw > 50 || lastDeltaYaw > 2 && deltaYaw < -50;
+
+//                player.getBukkitPlayer().sendMessage("1(" + player.getDeltaYaw() + ")" + "\n2(" + player.getAccelYaw() + ")" + "\n3(" + player.getJerkYaw() + ")");
 
                 if (snap1) {
                     flag("1");

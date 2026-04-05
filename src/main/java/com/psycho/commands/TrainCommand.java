@@ -31,8 +31,9 @@ public class TrainCommand implements SubCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         // args: [train] [epochs] [learning_rate]
-        int epochs = 500;
+        int epochs = 100;
         double lr = 0.001;
+        int stride = 80;
 
         if (args.length >= 2) {
             try {
@@ -54,6 +55,7 @@ public class TrainCommand implements SubCommand {
 
         final int finalEpochs = epochs;
         final double finalLr = lr;
+        final int finalStride = stride;
 
         sender.sendMessage("§eStarting GRU training...");
         sender.sendMessage("§7Epochs: §f" + finalEpochs + " §7| LR: §f" + finalLr);
@@ -103,7 +105,12 @@ public class TrainCommand implements SubCommand {
                 }
 
                 int seqLength = 80;
-                int sequenceCount = dataRows.size() / seqLength;
+
+                int sequenceCount = 0;
+                for (int start = 0; start + seqLength <= dataRows.size(); start += finalStride) {
+                    sequenceCount++;
+                }
+
                 if (sequenceCount == 0) {
                     sender.sendMessage("§cNot enough data for a single sequence.");
                     return;
@@ -113,24 +120,26 @@ public class TrainCommand implements SubCommand {
                 double[][] targets = new double[sequenceCount][1];
 
                 for (int i = 0; i < sequenceCount; i++) {
-                    double finalLabel = 0;
+                    int start = i * finalStride;
+                    int count = 0;
                     for (int j = 0; j < seqLength; j++) {
-                        sequences[i][j] = dataRows.get(i * seqLength + j);
-                        if (targetRows.get(i * seqLength + j)[0] == 1.0) {
-                            finalLabel = 1.0;
+                        sequences[i][j] = dataRows.get(start + j);
+                        if (targetRows.get(start + j)[0] == 1.0) {
+                            count++;
                         }
                     }
-                    targets[i][0] = finalLabel;
+
+                    targets[i][0] = (count >= seqLength * 0.7) ? 1.0 : 0.0;
                 }
 
-                sender.sendMessage("§eData loaded: " + sequenceCount + " sequences.");
+                sender.sendMessage("§eData loaded: §f" + sequenceCount + " §esequences (stride=§f" + finalStride + "§e).");
 
                 FeatureNormalizer normalizer = new FeatureNormalizer(6);
                 normalizer.fit(sequences);
                 sequences = normalizer.transform(sequences);
                 normalizer.save(new File(dir, "normalizer.bin"));
 
-                GRU gru = new GRU(6, 16, 1);
+                GRU gru = new GRU(6, 24, 1);
                 gru.train(sequences, targets, finalLr, finalEpochs);
 
                 File modelFile = new File(dir, "model.bin");
