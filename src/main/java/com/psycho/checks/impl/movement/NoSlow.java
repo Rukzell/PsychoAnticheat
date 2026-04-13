@@ -49,7 +49,7 @@ public class NoSlow extends Check {
             if (Math.abs(yd) > 0.01) {
                 threshold = 0.3;
             } else {
-                threshold = 0.123;
+                threshold = 0.14;
             }
 
             double speedMultiplier = 1.0;

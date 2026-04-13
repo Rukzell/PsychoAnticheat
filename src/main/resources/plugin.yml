@@ -23,6 +23,8 @@ permissions:
     default: op
   psycho.command.reload:
     default: op
+  psycho.command.model:
+    default: op
   psycho.command.alerts:
     default: op
   psycho.command.help:

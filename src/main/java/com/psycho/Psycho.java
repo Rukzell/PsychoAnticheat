@@ -10,6 +10,7 @@ import com.psycho.player.PsychoPlayer;
 import com.psycho.services.CheckService;
 import com.psycho.services.CommandService;
 import com.psycho.services.ConfigService;
+import com.psycho.services.MlModelService;
 import com.psycho.services.PlayerTrackerService;
 import com.psycho.utils.Logger;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
@@ -29,6 +30,7 @@ public final class Psycho extends JavaPlugin {
     private PlayerTrackerService playerTrackerService;
     private CheckListener checkListener;
     private Holograms holograms;
+    private MlModelService mlModelService;
 
     public static Psycho get() {
         return instance;
@@ -39,6 +41,7 @@ public final class Psycho extends JavaPlugin {
         connectionListener = new ConnectionListener();
         checkService = new CheckService();
         configService = new ConfigService(this);
+        mlModelService = new MlModelService(this);
         commandService = new CommandService(this);
         playerTrackerService = new PlayerTrackerService();
         checkListener = new CheckListener();
@@ -53,6 +56,7 @@ public final class Psycho extends JavaPlugin {
         saveDefaultConfig();
 
         ensureMlResources();
+        mlModelService.load();
 
         PacketEvents.getAPI().init();
         PacketEvents.getAPI().load();
@@ -118,6 +122,9 @@ public final class Psycho extends JavaPlugin {
         } catch (Exception e) {
             Logger.log("Error stopping holograms: " + e.getMessage());
         }
+        if (mlModelService != null) {
+            mlModelService.unload();
+        }
         Logger.log("Psycho disabled");
         try {
             PacketEvents.getAPI().terminate();
@@ -148,5 +155,9 @@ public final class Psycho extends JavaPlugin {
 
     public PlayerTrackerService getPlayerTrackerService() {
         return playerTrackerService;
+    }
+
+    public MlModelService getMlModelService() {
+        return mlModelService;
     }
 }

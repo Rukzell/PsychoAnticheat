@@ -3,6 +3,7 @@ package com.psycho.commands;
 import com.psycho.Psycho;
 import com.psycho.ml.FeatureNormalizer;
 import com.psycho.ml.models.GRU;
+import com.psycho.services.MlModelService;
 import org.bukkit.command.CommandSender;
 
 import java.io.BufferedReader;
@@ -146,6 +147,8 @@ public class TrainCommand implements SubCommand {
                 gru.save(modelFile);
 
                 sender.sendMessage("§aTraining completed! Model saved to model.bin, normalizer saved to normalizer.bin");
+                MlModelService.Result reloadResult = plugin.getMlModelService().reload();
+                sender.sendMessage(reloadResult.message());
 
             } catch (Exception e) {
                 e.printStackTrace();

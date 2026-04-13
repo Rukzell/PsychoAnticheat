@@ -2,6 +2,7 @@ package com.psycho.ml.models;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -192,15 +193,14 @@ public class GRU {
         vby = new double[outputSize];
     }
 
-    private ForwardResult forwardFull(double[][] sequence) {
-        int T = sequence.length;
-        ForwardResult res = new ForwardResult();
-        res.hs = new double[T + 1][hiddenSize];
-        res.zs = new double[T][hiddenSize];
-        res.rs = new double[T][hiddenSize];
-        res.hcs = new double[T][hiddenSize];
-        res.rhs = new double[T][hiddenSize];
+    private TrainingContext forwardFull(double[][] sequence) {
+        TrainingContext context = new TrainingContext(sequence.length, hiddenSize, outputSize);
+        forwardFull(sequence, context);
+        return context;
+    }
 
+    private void forwardFull(double[][] sequence, TrainingContext res) {
+        int T = sequence.length;
         for (int t = 0; t < T; t++) {
             double[] x = sequence[t];
             double[] hPrev = res.hs[t];
@@ -228,19 +228,86 @@ public class GRU {
                 res.hs[t + 1][i] = (1.0 - res.zs[t][i]) * hPrev[i] + res.zs[t][i] * res.hcs[t][i];
             }
         }
-
-        res.y = new double[outputSize];
         for (int i = 0; i < outputSize; i++) {
             double sum = by[i];
             for (int j = 0; j < hiddenSize; j++) sum += Why[i][j] * res.hs[T][j];
             res.y[i] = sigmoid(sum);
         }
-
-        return res;
     }
 
     public double[] forward(double[][] sequence) {
-        return forwardFull(sequence).y;
+        return Arrays.copyOf(forwardFull(sequence).y, outputSize);
+    }
+
+    public InferenceContext createInferenceContext() {
+        return new InferenceContext(hiddenSize);
+    }
+
+    public double predictScalar(double[][] sequence, InferenceContext context) {
+        if (outputSize != 1) {
+            throw new IllegalStateException("predictScalar() requires outputSize == 1, got " + outputSize);
+        }
+
+        double[] hPrev = context.stateA;
+        double[] hCurr = context.stateB;
+        Arrays.fill(hPrev, 0.0);
+        Arrays.fill(hCurr, 0.0);
+
+        for (double[] x : sequence) {
+            for (int i = 0; i < hiddenSize; i++) {
+                double pz = bz[i];
+                double pr = br[i];
+                double[] wxz = Wxz[i];
+                double[] wxr = Wxr[i];
+                double[] whz = Whz[i];
+                double[] whr = Whr[i];
+
+                for (int j = 0; j < inputSize; j++) {
+                    double xj = x[j];
+                    pz += wxz[j] * xj;
+                    pr += wxr[j] * xj;
+                }
+
+                for (int j = 0; j < hiddenSize; j++) {
+                    double hp = hPrev[j];
+                    pz += whz[j] * hp;
+                    pr += whr[j] * hp;
+                }
+
+                double z = sigmoid(pz);
+                double r = sigmoid(pr);
+                context.z[i] = z;
+                context.rh[i] = r * hPrev[i];
+            }
+
+            for (int i = 0; i < hiddenSize; i++) {
+                double ph = bh[i];
+                double[] wxh = Wxh[i];
+                double[] whh = Whh[i];
+
+                for (int j = 0; j < inputSize; j++) {
+                    ph += wxh[j] * x[j];
+                }
+
+                for (int j = 0; j < hiddenSize; j++) {
+                    ph += whh[j] * context.rh[j];
+                }
+
+                double hc = Math.tanh(ph);
+                hCurr[i] = (1.0 - context.z[i]) * hPrev[i] + context.z[i] * hc;
+            }
+
+            double[] tmp = hPrev;
+            hPrev = hCurr;
+            hCurr = tmp;
+        }
+
+        double sum = by[0];
+        double[] why0 = Why[0];
+        for (int j = 0; j < hiddenSize; j++) {
+            sum += why0[j] * hPrev[j];
+        }
+        return sigmoid(sum);
     }
 
     public void train(double[][][] sequences, double[][] targets, double lr, int epochs) {
@@ -256,11 +323,17 @@ public class GRU {
         System.out.printf("Positives: %d | Negatives: %d | posWeight: %.4f | negWeight: %.4f%n",
                 positives, negatives, posWeight, negWeight);
 
-        List<Integer> order = new ArrayList<>();
-        for (int i = 0; i < sequences.length; i++) order.add(i);
+        int[] order = new int[sequences.length];
+        for (int i = 0; i < sequences.length; i++) {
+            order[i] = i;
+        }
+
+        int sequenceLength = sequences.length == 0 ? 0 : sequences[0].length;
+        TrainingContext fwd = new TrainingContext(sequenceLength, hiddenSize, outputSize);
+        GradientBuffers gradients = new GradientBuffers(hiddenSize, inputSize, outputSize);
 
         for (int epoch = 0; epoch < epochs; epoch++) {
-            Collections.shuffle(order, rnd);
+            shuffle(order);
             double totalLoss = 0.0;
 
             for (int idx : order) {
@@ -269,7 +342,8 @@ public class GRU {
                 int T = seq.length;
 
                 // ── Forward ──────────────────────────────────
-                ForwardResult fwd = forwardFull(seq);
+                gradients.clear();
+                forwardFull(seq, fwd);
                 double[] y = fwd.y;
                 double[][] hs = fwd.hs;
                 double[][] zs = fwd.zs;
@@ -285,44 +359,49 @@ public class GRU {
                 }
 
                 // ── Backward ───────────────────────────────────────────
-                double[] dy = new double[outputSize];
+                double[] dy = gradients.dy;
                 for (int i = 0; i < outputSize; i++) {
                     double w = (target[i] == 1.0) ? posWeight : negWeight;
                     dy[i] = w * (y[i] - target[i]);
                 }
 
-                double[][] dWhy = new double[outputSize][hiddenSize];
-                double[] dby = new double[outputSize];
+                double[][] dWhy = gradients.dWhy;
+                double[] dby = gradients.dby;
                 for (int i = 0; i < outputSize; i++) {
                     dby[i] = dy[i];
                     for (int j = 0; j < hiddenSize; j++) dWhy[i][j] = dy[i] * hs[T][j];
                 }
 
-                double[] dhNext = new double[hiddenSize];
+                double[] dhNext = gradients.dhNext;
                 for (int i = 0; i < hiddenSize; i++)
                     for (int k = 0; k < outputSize; k++)
                         dhNext[i] += dy[k] * Why[k][i];
 
-                double[][] dWxh = new double[hiddenSize][inputSize];
-                double[][] dWhh = new double[hiddenSize][hiddenSize];
-                double[] dbh = new double[hiddenSize];
-                double[][] dWxz = new double[hiddenSize][inputSize];
-                double[][] dWhz = new double[hiddenSize][hiddenSize];
-                double[] dbz = new double[hiddenSize];
-                double[][] dWxr = new double[hiddenSize][inputSize];
-                double[][] dWhr = new double[hiddenSize][hiddenSize];
-                double[] dbr = new double[hiddenSize];
+                double[][] dWxh = gradients.dWxh;
+                double[][] dWhh = gradients.dWhh;
+                double[] dbh = gradients.dbh;
+                double[][] dWxz = gradients.dWxz;
+                double[][] dWhz = gradients.dWhz;
+                double[] dbz = gradients.dbz;
+                double[][] dWxr = gradients.dWxr;
+                double[][] dWhr = gradients.dWhr;
+                double[] dbr = gradients.dbr;
 
                 // BPTT
                 for (int t = T - 1; t >= 0; t--) {
                     double[] x = seq[t];
                     double[] hPrev = hs[t];
 
-                    double[] dpre_hc = new double[hiddenSize];
-                    double[] dpre_z = new double[hiddenSize];
-                    double[] dpre_r = new double[hiddenSize];
-                    double[] d_rh = new double[hiddenSize];
-                    double[] dhPrev = new double[hiddenSize];
+                    double[] dpre_hc = gradients.dpre_hc;
+                    double[] dpre_z = gradients.dpre_z;
+                    double[] dpre_r = gradients.dpre_r;
+                    double[] d_rh = gradients.d_rh;
+                    double[] dhPrev = gradients.dhPrev;
+                    Arrays.fill(dpre_hc, 0.0);
+                    Arrays.fill(dpre_z, 0.0);
+                    Arrays.fill(dpre_r, 0.0);
+                    Arrays.fill(d_rh, 0.0);
+                    Arrays.fill(dhPrev, 0.0);
 
                     for (int i = 0; i < hiddenSize; i++) {
                         dpre_hc[i] = dhNext[i] * zs[t][i] * (1 - hcs[t][i] * hcs[t][i]);
@@ -361,7 +440,9 @@ public class GRU {
                         for (int j = 0; j < hiddenSize; j++) dWhr[i][j] += dpre_r[i] * hPrev[j];
                     }
 
+                    double[] swap = dhNext;
                     dhNext = dhPrev;
+                    gradients.dhPrev = swap;
                 }
 
                 // ── Normalize by sequence length ───────────────
@@ -407,7 +488,7 @@ public class GRU {
                 adamUpdate1D(br, dbr, mbr, vbr, lr, adamT);
             }
 
-            if (epoch % 10 == 0) {
+            if (epoch == 0 || epoch == epochs - 1 || epoch % 20 == 0) {
                 System.out.printf("Epoch %4d  Loss: %.6f%n", epoch, totalLoss / sequences.length);
                 evaluate(sequences, targets);
             }
@@ -520,11 +601,11 @@ public class GRU {
     public void evaluate(double[][][] sequences, double[][] targets) {
 
         int tp = 0, tn = 0, fp = 0, fn = 0;
+        InferenceContext context = createInferenceContext();
 
         for (int i = 0; i < sequences.length; i++) {
 
-            double[] pred = forward(sequences[i]);
-            double y = pred[0] >= 0.5 ? 1.0 : 0.0;
+            double y = predictScalar(sequences[i], context) >= 0.5 ? 1.0 : 0.0;
             double t = targets[i][0];
 
             if (t == 1.0 && y == 1.0) tp++;
@@ -555,5 +636,104 @@ public class GRU {
     private static class ForwardResult {
         double[][] hs, zs, rs, hcs, rhs;
         double[] y;
+    }
+
+    private void shuffle(int[] order) {
+        for (int i = order.length - 1; i > 0; i--) {
+            int j = rnd.nextInt(i + 1);
+            int tmp = order[i];
+            order[i] = order[j];
+            order[j] = tmp;
+        }
+    }
+
+    private static final class TrainingContext extends ForwardResult {
+        private TrainingContext(int sequenceLength, int hiddenSize, int outputSize) {
+            this.hs = new double[sequenceLength + 1][hiddenSize];
+            this.zs = new double[sequenceLength][hiddenSize];
+            this.rs = new double[sequenceLength][hiddenSize];
+            this.hcs = new double[sequenceLength][hiddenSize];
+            this.rhs = new double[sequenceLength][hiddenSize];
+            this.y = new double[outputSize];
+        }
+    }
+
+    private static final class GradientBuffers {
+        private final double[][] dWxh;
+        private final double[][] dWhh;
+        private final double[] dbh;
+        private final double[][] dWxz;
+        private final double[][] dWhz;
+        private final double[] dbz;
+        private final double[][] dWxr;
+        private final double[][] dWhr;
+        private final double[] dbr;
+        private final double[][] dWhy;
+        private final double[] dby;
+        private final double[] dy;
+        private double[] dhNext;
+        private double[] dhPrev;
+        private final double[] dpre_hc;
+        private final double[] dpre_z;
+        private final double[] dpre_r;
+        private final double[] d_rh;
+
+        private GradientBuffers(int hiddenSize, int inputSize, int outputSize) {
+            this.dWxh = new double[hiddenSize][inputSize];
+            this.dWhh = new double[hiddenSize][hiddenSize];
+            this.dbh = new double[hiddenSize];
+            this.dWxz = new double[hiddenSize][inputSize];
+            this.dWhz = new double[hiddenSize][hiddenSize];
+            this.dbz = new double[hiddenSize];
+            this.dWxr = new double[hiddenSize][inputSize];
+            this.dWhr = new double[hiddenSize][hiddenSize];
+            this.dbr = new double[hiddenSize];
+            this.dWhy = new double[outputSize][hiddenSize];
+            this.dby = new double[outputSize];
+            this.dy = new double[outputSize];
+            this.dhNext = new double[hiddenSize];
+            this.dhPrev = new double[hiddenSize];
+            this.dpre_hc = new double[hiddenSize];
+            this.dpre_z = new double[hiddenSize];
+            this.dpre_r = new double[hiddenSize];
+            this.d_rh = new double[hiddenSize];
+        }
+
+        private void clear() {
+            clearMatrix(dWxh);
+            clearMatrix(dWhh);
+            Arrays.fill(dbh, 0.0);
+            clearMatrix(dWxz);
+            clearMatrix(dWhz);
+            Arrays.fill(dbz, 0.0);
+            clearMatrix(dWxr);
+            clearMatrix(dWhr);
+            Arrays.fill(dbr, 0.0);
+            clearMatrix(dWhy);
+            Arrays.fill(dby, 0.0);
+            Arrays.fill(dy, 0.0);
+            Arrays.fill(dhNext, 0.0);
+            Arrays.fill(dhPrev, 0.0);
+        }
+
+        private static void clearMatrix(double[][] matrix) {
+            for (double[] row : matrix) {
+                Arrays.fill(row, 0.0);
+            }
+        }
+    }
+
+    public static final class InferenceContext {
+        private final double[] stateA;
+        private final double[] stateB;
+        private final double[] z;
+        private final double[] rh;
+
+        private InferenceContext(int hiddenSize) {
+            this.stateA = new double[hiddenSize];
+            this.stateB = new double[hiddenSize];
+            this.z = new double[hiddenSize];
+            this.rh = new double[hiddenSize];
+        }
     }
 }

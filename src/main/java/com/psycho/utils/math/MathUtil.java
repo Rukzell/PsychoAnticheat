@@ -122,8 +122,12 @@ public class MathUtil {
         return variance / count;
     }
 
-    public static int distinct(Collection<? extends Number> values) {
-        return (int) values.stream().distinct().count();
+    public static int distinct(Collection<Float> values) {
+        Set<Integer> set = new HashSet<>(values.size());
+        for (float v : values) {
+            set.add(Float.floatToIntBits(v));
+        }
+        return set.size();
     }
 
     public static double robustRangeIQR(Collection<? extends Number> values) {

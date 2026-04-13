@@ -106,6 +106,46 @@ public class TrackedPlayer {
         return lastUpdateAt;
     }
 
+    public synchronized long getLastJoinAt() {
+        return lastJoinAt;
+    }
+
+    public synchronized long getLastQuitAt() {
+        return lastQuitAt;
+    }
+
+    public synchronized long getFirstSeenAt() {
+        return firstSeenAt;
+    }
+
+    public synchronized long getUpdateCount() {
+        return updateCount;
+    }
+
+    public synchronized int getSessionCount() {
+        return sessionCount;
+    }
+
+    public synchronized int getPeakCps() {
+        return peakCps;
+    }
+
+    public synchronized int getPeakTotalViolations() {
+        return peakTotalViolations;
+    }
+
+    public synchronized int getPeakFailedChecks() {
+        return peakFailedChecks;
+    }
+
+    public synchronized double getPeakMlProbability() {
+        return peakMlProbability;
+    }
+
+    public synchronized Snapshot getSnapshot() {
+        return snapshot;
+    }
+
     public synchronized double getRiskScore() {
         if (snapshot == null) {
             return 0.0;
